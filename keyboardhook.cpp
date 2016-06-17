@@ -79,6 +79,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 KeyboardHook::KeyboardHook(QObject *parent) : QObject(parent)
 {
     g_cmd = new Cmd();
+    g_cmd->show();
     HHOOK keyboardHook = ::SetWindowsHookEx(WH_KEYBOARD_LL,
                                             KbHookProc,
                                             ::GetModuleHandle(NULL),

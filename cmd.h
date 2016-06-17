@@ -14,7 +14,8 @@ class Cmd : public QWidget
 public:
     explicit Cmd(QWidget *parent = 0);
     ~Cmd();
-
+public slots:
+    void textEdited();
 private:
     Ui::Cmd *ui;
 };
