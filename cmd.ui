@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>612</width>
-    <height>78</height>
+    <width>600</width>
+    <height>312</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -30,29 +30,46 @@
   <property name="windowTitle">
    <string>Cmd</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget {
+	background-color: #252525;
+}
+
+QLineEdit {
+	color: #ababab;
+	background-color: #3c3c3c;
+	margin: 6px 6px 6px 6px;
+	border: 1px solid #174a6c;
+}
+
+QListView {
+	color: #ababab;
+	 border: 0 transparent
+}</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
-    <number>6</number>
+    <number>0</number>
    </property>
    <property name="sizeConstraint">
-    <enum>QLayout::SetMinAndMaxSize</enum>
+    <enum>QLayout::SetDefaultConstraint</enum>
    </property>
    <property name="leftMargin">
-    <number>6</number>
+    <number>0</number>
    </property>
    <property name="topMargin">
-    <number>6</number>
+    <number>0</number>
    </property>
    <property name="rightMargin">
-    <number>6</number>
+    <number>0</number>
    </property>
    <property name="bottomMargin">
-    <number>6</number>
+    <number>0</number>
    </property>
    <item>
     <widget class="QLineEdit" name="lineEdit">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -66,8 +83,7 @@
      <property name="font">
       <font>
        <family>Consolas</family>
-       <pointsize>16</pointsize>
-       <stylestrategy>PreferDefault</stylestrategy>
+       <pointsize>11</pointsize>
       </font>
      </property>
     </widget>
@@ -75,7 +91,7 @@
    <item>
     <widget class="QListView" name="listView">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+      <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
@@ -91,6 +107,12 @@
        <width>16777215</width>
        <height>16777215</height>
       </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>Consolas</family>
+       <pointsize>11</pointsize>
+      </font>
      </property>
      <property name="sizeAdjustPolicy">
       <enum>QAbstractScrollArea::AdjustIgnored</enum>

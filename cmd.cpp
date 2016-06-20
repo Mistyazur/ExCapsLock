@@ -15,11 +15,14 @@ Cmd::Cmd(QWidget *parent) :
     ::SetWindowLong(hwnd, GWL_EXSTYLE, ::GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
 
     // Set UI
+    setFixedSize(600, 400);
     ui->setupUi(this);
-//    ui->listView->hide();
+//    ui->listView->hide()
+
+    // Activate this window
+    activateWindow();
 
     connect(ui->lineEdit, &QLineEdit::textEdited, this, &Cmd::textEdited);
-    qDebug()<<ui->listView->sizeHint()<<ui->lineEdit->sizeHint();
 }
 
 Cmd::~Cmd()
@@ -41,4 +44,10 @@ void Cmd::textEdited()
     //    num<<QString("1")<<QString("2")<<QString("3")<<QString("4");
         QStringListModel *model = new QStringListModel(num);
         ui->listView->setModel(model);
+}
+
+void Cmd::keyPressEvent(QKeyEvent *event)
+{
+    if (event->nativeVirtualKey() == VK_ESCAPE)
+        hide();
 }

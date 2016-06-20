@@ -30,7 +30,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     if (prevWParam != wParam || prevVKeyCode != pKey->vkCode)
     {
         qDebug()<<"KEY:"<<wParam<<pKey->vkCode;
-        if (wParam == WM_bComposite )
+        if (wParam == WM_KEYDOWN)
         {
             if (pKey->vkCode == VK_OEM_3)
             {
@@ -76,11 +76,11 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
                 }
                 else
                 {
-                    if (pKey->vkCode == VK_ESCAPE)
-                    {
-                        // Esc: hide command
-                        g_cmd->hide();
-                    }
+//                    if (pKey->vkCode == VK_ESCAPE)
+//                    {
+//                        // Esc: hide command
+//                        g_cmd->hide();
+//                    }
                 }
             }
         }

@@ -2,6 +2,7 @@
 #define CMD_H
 
 #include <QWidget>
+#include <QKeyEvent>
 
 namespace Ui {
 class Cmd;
@@ -16,6 +17,8 @@ public:
     ~Cmd();
 public slots:
     void textEdited();
+protected:
+    void keyPressEvent(QKeyEvent *event);
 private:
     Ui::Cmd *ui;
 };
