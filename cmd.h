@@ -2,6 +2,7 @@
 #define CMD_H
 
 #include <QWidget>
+#include <QPixmap>
 #include <QKeyEvent>
 
 namespace Ui {
@@ -18,9 +19,11 @@ public:
 public slots:
     void textEdited();
 protected:
+    void paintEvent(QPaintEvent *event);
     void keyPressEvent(QKeyEvent *event);
 private:
     Ui::Cmd *ui;
+    QPixmap m_shadow;
 };
 
 #endif // CMD_H
