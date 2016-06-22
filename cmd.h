@@ -2,8 +2,9 @@
 #define CMD_H
 
 #include <QWidget>
-#include <QPixmap>
 #include <QKeyEvent>
+#include <QPixmap>
+#include <QStandardItemModel>
 
 namespace Ui {
 class Cmd;
@@ -24,6 +25,7 @@ protected:
 private:
     Ui::Cmd *ui;
     QPixmap m_shadow;
+    QStandardItemModel* m_stdModel;
 };
 
 #endif // CMD_H

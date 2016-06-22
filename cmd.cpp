@@ -13,16 +13,26 @@ Cmd::Cmd(QWidget *parent) :
     m_shadow("../ExCapsLock/src/window_shadow.png")
 {
     // Set window attributes
-    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+//    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground);
 
     // Set UI
     setFixedSize(600, 400);
     ui->setupUi(this);
-//    ui->listView->hide()
+//    ui->listView->hide();
+    ui->listView->setFocusPolicy(Qt::NoFocus);
 
     // Activate this window
     activateWindow();
+
+    // Model for list view
+    m_stdModel = new QStandardItemModel(this);
+    m_stdModel->setItem(0, 0,new QStandardItem("1"));
+    m_stdModel->setItem(1, 0,new QStandardItem("2"));
+    m_stdModel->setItem(2, 0,new QStandardItem("3"));
+    ui->listView->setModel(m_stdModel);
+    QModelIndex index = m_stdModel->index(1, 0);
+    ui->listView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
 
     connect(ui->lineEdit, &QLineEdit::textEdited, this, &Cmd::textEdited);
 }
@@ -34,18 +44,22 @@ Cmd::~Cmd()
 
 void Cmd::textEdited()
 {
-//    qDebug()<<"1";
-    int n = ui->lineEdit->text().toInt();
-    QStringList num;
-    for (int i = 0; i < n ; i++)
-    {
-        qDebug()<<i;
-        num.append(QString::number(i));
-    }
-    //    QStringList num;
-    //    num<<QString("1")<<QString("2")<<QString("3")<<QString("4");
-        QStringListModel *model = new QStringListModel(num);
-        ui->listView->setModel(model);
+////    qDebug()<<"1";
+//    int n = ui->lineEdit->text().toInt();
+//    QStringList num;
+//    for (int i = 0; i < n ; i++)
+//    {
+//        qDebug()<<i;
+//        num.append(QString::number(i));
+//    }
+//    //    QStringList num;
+//    //    num<<QString("1")<<QString("2")<<QString("3")<<QString("4");
+//        QStringListModel *model = new QStringListModel(num);
+//        ui->listView->setModel(model);
+//        QModelIndex index = model->createIndex(0, 0);
+//        if ( index.isValid() )
+//             ui->listView->selectionModel()->select( index, QItemSelectionModel::Select );
+
 }
 
 // Draw shadow
@@ -85,4 +99,35 @@ void Cmd::keyPressEvent(QKeyEvent *event)
 {
     if (event->nativeVirtualKey() == VK_ESCAPE)
         hide();
+    else if (event->nativeVirtualKey() == VK_RETURN)
+    {
+
+        foreach(const QModelIndex &index, ui->listView->selectionModel()->selectedIndexes()){
+               qDebug()<<index.data(Qt::DisplayRole).toString();
+           }
+    }
+    else if (event->nativeVirtualKey() == VK_DOWN)
+    {
+        QItemSelectionModel *selectionModel = ui->listView->selectionModel();
+        foreach(const QModelIndex &index, selectionModel->selectedIndexes())
+        {
+            qDebug()<<index.data(Qt::DisplayRole).toString() << index.row() <<index.column() << m_stdModel->rowCount();
+            if (index.row() < m_stdModel->rowCount() - 1)
+            {
+                selectionModel->select(m_stdModel->index(index.row() + 1, index.column()), QItemSelectionModel::ClearAndSelect);
+            }
+        }
+    }
+    else if (event->nativeVirtualKey() == VK_UP)
+    {
+        QItemSelectionModel *selectionModel = ui->listView->selectionModel();
+        foreach(const QModelIndex &index, selectionModel->selectedIndexes())
+        {
+            qDebug()<<index.data(Qt::DisplayRole).toString() << index.row() <<index.column();
+            if (index.row() > 0)
+            {
+                selectionModel->select(m_stdModel->index(index.row() - 1, index.column()), QItemSelectionModel::ClearAndSelect);
+            }
+        }
+    }
 }

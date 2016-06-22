@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>610</width>
-    <height>340</height>
+    <width>612</width>
+    <height>352</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -37,15 +37,25 @@ QWidget {
 }
 
 QLineEdit {
-	color: #ababab;
+	color: #bdbdbd;
 	background-color: #3c3c3c;
-	margin: 6px 6px 6px 6px;
 	border: 1px solid #174a6c;
+	margin: 6px 6px 6px 6px;
 }
 
 QListView {
-	color: #ababab;
+	color: #bdbdbd;
 	border: 0 transparent;
+	margin: 6px 6px 6px 6px;
+}
+
+QListView::item:selected:!active {
+	color: #bdbdbd;
+    background: #073655;
+}
+
+QListView::item:hover {
+    background: #2a2d2e;
 }
 
 QScrollBar:vertical {
@@ -54,7 +64,7 @@ QScrollBar:vertical {
 }
 
 QScrollBar::handle:vertical {
-    background: #464646;
+	background: rgba(70, 70, 70, 200);
     min-height: 30px;
 }
 
@@ -81,16 +91,16 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
     <number>0</number>
    </property>
    <property name="leftMargin">
-    <number>4</number>
+    <number>5</number>
    </property>
    <property name="topMargin">
-    <number>4</number>
+    <number>5</number>
    </property>
    <property name="rightMargin">
-    <number>4</number>
+    <number>5</number>
    </property>
    <property name="bottomMargin">
-    <number>4</number>
+    <number>5</number>
    </property>
    <item>
     <widget class="QFrame" name="frame">
@@ -127,7 +137,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
         <property name="minimumSize">
          <size>
           <width>600</width>
-          <height>30</height>
+          <height>40</height>
          </size>
         </property>
         <property name="font">
