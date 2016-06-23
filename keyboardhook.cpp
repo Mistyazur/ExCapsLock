@@ -4,7 +4,7 @@
 
 CmdPalette *g_cmd = nullptr;
 
-void KeyClick(DWORD key)
+void KeyClick(WORD key)
 {
     INPUT input[2] = {0};
     input[0].type = INPUT_KEYBOARD;
@@ -12,6 +12,7 @@ void KeyClick(DWORD key)
     input[0].ki.dwFlags = 0;
     input[1].type = INPUT_KEYBOARD;
     input[1].ki.wVk = key;
+//    input[1].ki.wVk = key+1;
     input[1].ki.dwFlags = KEYEVENTF_KEYUP;
     ::SendInput(_countof(input), input, sizeof(INPUT));
 }
@@ -24,12 +25,16 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     static DWORD prevVKeyCode = 0;
     PKBDLLHOOKSTRUCT pKey = (PKBDLLHOOKSTRUCT)lParam;
 
+    // Key event injected
+    if (pKey->flags & LLKHF_INJECTED)
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
+
     if (prevWParam != wParam || prevVKeyCode != pKey->vkCode)
     {
-        qDebug()<<"KEY:"<<wParam<<pKey->vkCode;
+        qDebug()<<"KEY:"<<wParam<<pKey->vkCode<<(pKey->flags & LLKHF_INJECTED);
         if (wParam == WM_KEYDOWN)
         {
-            if (pKey->vkCode == VK_OEM_3)
+            if (pKey->vkCode == VK_CAPITAL)
             {
                 capsDown = true;
                 bComposite  = false;
@@ -43,31 +48,26 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
                     if (pKey->vkCode == VK_SPACE)
                     {
                         // Capslock + space: show command
-                        qDebug()<<"Show";
                         g_cmd->show();
                     }
                     else if (pKey->vkCode == 'W')
                     {
                         // Capslock + W: Up
-                        qDebug()<<3213;
                         KeyClick(VK_UP);
                     }
                     else if (pKey->vkCode == 'S')
                     {
                         // Capslock + S: Down
-                        qDebug()<<3213;
                         KeyClick(VK_DOWN);
                     }
                     else if (pKey->vkCode == 'A')
                     {
                         // Capslock + A: Left
-                        qDebug()<<3213;
                         KeyClick(VK_LEFT);
                     }
                     else if (pKey->vkCode == 'D')
                     {
                         // Capslock + D: Right
-                        qDebug()<<3213;
                         KeyClick(VK_RIGHT);
                     }
                 }
@@ -83,7 +83,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
         }
         else if (wParam == WM_KEYUP)
         {
-            if (pKey->vkCode == VK_OEM_3)
+            if (pKey->vkCode == VK_CAPITAL)
             {
                 capsDown = false;
 
@@ -100,7 +100,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     }
 
     // Discard this message if it's my business
-    if (pKey->vkCode == VK_OEM_3 || capsDown)
+    if (pKey->vkCode == VK_CAPITAL || capsDown)
         return true;
 
     return CallNextHookEx(NULL, nCode, wParam, lParam);

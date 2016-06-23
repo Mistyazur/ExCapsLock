@@ -1,5 +1,4 @@
 #include "systemcmd.h"
-#include <QDebug>
 #include <QProcess>
 
 SystemCmd::SystemCmd(const QString &text, const QString &cmd) :
