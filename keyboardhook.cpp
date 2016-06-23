@@ -1,14 +1,11 @@
 #include "keyboardhook.h"
-#include "cmd.h"
+#include "cmdpalette.h"
 #include <QDebug>
 
-Cmd *g_cmd = nullptr;
+CmdPalette *g_cmd = nullptr;
 
 void KeyClick(DWORD key)
 {
-//    keybd_event(key, 0, 0, 0);
-//    keybd_event(key, 0, KEYEVENTF_KEYUP, 0);
-
     INPUT input[2] = {0};
     input[0].type = INPUT_KEYBOARD;
     input[0].ki.wVk = key;
@@ -111,7 +108,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 KeyboardHook::KeyboardHook(QObject *parent) : QObject(parent)
 {
-    g_cmd = new Cmd();
+    g_cmd = new CmdPalette();
     g_cmd->show();
     HHOOK keyboardHook = ::SetWindowsHookEx(WH_KEYBOARD_LL,
                                             KbHookProc,

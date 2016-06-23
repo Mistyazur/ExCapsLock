@@ -13,12 +13,18 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        cmd.cpp \
-    keyboardhook.cpp
+    keyboardhook.cpp \
+    cmditem.cpp \
+    cmdpalette.cpp \
+    systemcmd.cpp
 
-HEADERS  += cmd.h \
-    keyboardhook.h
+HEADERS  += \
+    keyboardhook.h \
+    cmditem.h \
+    cmdpalette.h \
+    systemcmd.h
 
 FORMS    += cmd.ui
 
 LIBS += -lUser32
+

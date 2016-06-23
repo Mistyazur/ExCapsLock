@@ -177,6 +177,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
         <property name="sizeAdjustPolicy">
          <enum>QAbstractScrollArea::AdjustIgnored</enum>
         </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
        </widget>
       </item>
      </layout>

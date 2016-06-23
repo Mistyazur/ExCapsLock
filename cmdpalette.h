@@ -10,13 +10,13 @@ namespace Ui {
 class Cmd;
 }
 
-class Cmd : public QWidget
+class CmdPalette : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit Cmd(QWidget *parent = 0);
-    ~Cmd();
+    explicit CmdPalette(QWidget *parent = 0);
+    ~CmdPalette();
 public slots:
     void textEdited();
 protected:
