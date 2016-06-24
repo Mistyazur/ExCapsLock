@@ -1,12 +1,11 @@
 #include "cmdpalette.h"
 #include "ui_cmd.h"
 #include "systemcmd.h"
+#include "power.h"
 #include <Windows.h>
 #include <QDebug>
 #include <QtMath>
-#include <QStringListModel>
 #include <QPainter>
-#include <QPainterPath>
 
 
 CmdPalette::CmdPalette(QWidget *parent) :
@@ -28,10 +27,12 @@ CmdPalette::CmdPalette(QWidget *parent) :
 
     // Model for list view
     m_stdModel = new QStandardItemModel(this);
-    m_stdModel->setItem(0, 0, new SystemCmd("Power: Sleep", "shutdown -h"));
-    m_stdModel->setItem(1, 0, new SystemCmd("Power: Shut Down", "shutdown -s"));
-    m_stdModel->setItem(2, 0, new SystemCmd("Power: Restart", "shutdown -r"));
     ui->listView->setModel(m_stdModel);
+
+    m_stdModel->setItem(0, 0, new Power("Power: Sleep", 0));
+    m_stdModel->setItem(1, 0, new Power("Power: Hibernate", 1));
+    m_stdModel->setItem(2, 0, new Power("Power: Shut Down", 2));
+    m_stdModel->setItem(3, 0, new Power("Power: Restart", 3));
     ui->listView->selectionModel()->setCurrentIndex(m_stdModel->index(0, 0), QItemSelectionModel::ClearAndSelect);
 
     connect(ui->lineEdit, &QLineEdit::textEdited, this, &CmdPalette::textEdited);
@@ -47,7 +48,7 @@ void CmdPalette::textEdited()
 }
 
 // Draw shadow
-void CmdPalette::paintEvent(QPaintEvent *event)
+void CmdPalette::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
 
@@ -85,26 +86,14 @@ void CmdPalette::keyPressEvent(QKeyEvent *event)
         hide();
     else if (event->nativeVirtualKey() == VK_RETURN)
     {
-        QItemSelectionModel *selectionModel = ui->listView->selectionModel();
-        foreach(const QModelIndex &index, selectionModel->selectedIndexes())
+        foreach(const QModelIndex &index, ui->listView->selectionModel()->selectedIndexes())
         {
-            qDebug()<<index.data(Qt::DisplayRole).toString() << index.row() <<index.column();
             ((CmdItem *)m_stdModel->itemFromIndex(index))->exec();
         }
     }
     else if (event->nativeVirtualKey() == VK_DOWN)
     {
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
-//        ui->listView->keyPressEvent(event);
-//        QItemSelectionModel *selectionModel = ui->listView->selectionModel();
-//        foreach(const QModelIndex &index, selectionModel->selectedIndexes())
-//        {
-//            qDebug()<<index.data(Qt::DisplayRole).toString() << index.row() <<index.column() << m_stdModel->rowCount();
-//            if (index.row() < m_stdModel->rowCount() - 1)
-//            {
-//                selectionModel->select(m_stdModel->index(index.row() + 1, index.column()), QItemSelectionModel::ClearAndSelect);
-//            }
-//        }
     }
     else if (event->nativeVirtualKey() == VK_UP)
     {

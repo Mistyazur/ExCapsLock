@@ -11,20 +11,28 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = ExCapsLock
 TEMPLATE = app
 
-
-SOURCES += main.cpp\
+SOURCES += main.cpp \
     keyboardhook.cpp \
     cmditem.cpp \
     cmdpalette.cpp \
-    systemcmd.cpp
+    systemcmd.cpp \
+    power.cpp
 
 HEADERS  += \
     keyboardhook.h \
     cmditem.h \
     cmdpalette.h \
-    systemcmd.h
+    systemcmd.h \
+    power.h
 
 FORMS    += cmd.ui
 
-LIBS += -lUser32
+LIBS += -lUser32 -lAdvapi32 -lPowrProf
 
+DEPENDPATH += Singleton \
+        WMI
+INCLUDEPATH += Singleton \
+        WMI
+
+include(Singleton/Singleton.pri)
+include(WMI/WMI.pri)

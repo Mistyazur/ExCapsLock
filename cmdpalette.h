@@ -1,5 +1,5 @@
-#ifndef CMD_H
-#define CMD_H
+#ifndef CMDPALETTE_H
+#define CMDPALETTE_H
 
 #include <QWidget>
 #include <QKeyEvent>
@@ -20,7 +20,7 @@ public:
 public slots:
     void textEdited();
 protected:
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *);
     void keyPressEvent(QKeyEvent *event);
 private:
     Ui::Cmd *ui;
@@ -28,4 +28,4 @@ private:
     QStandardItemModel* m_stdModel;
 };
 
-#endif // CMD_H
+#endif // CMDPALETTE_H

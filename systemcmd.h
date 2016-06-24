@@ -1,5 +1,5 @@
-#ifndef POWER_H
-#define POWER_H
+#ifndef SYSTEMCMD_H
+#define SYSTEMCMD_H
 
 #include "cmditem.h"
 
@@ -12,4 +12,4 @@ private:
     QString m_cmd;
 };
 
-#endif // POWER_H
+#endif // SYSTEMCMD_H

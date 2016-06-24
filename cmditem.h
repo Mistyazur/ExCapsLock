@@ -1,5 +1,5 @@
-#ifndef CMDS_H
-#define CMDS_H
+#ifndef CMDITEM_H
+#define CMDITEM_H
 
 #include <QStandardItem>
 
@@ -10,4 +10,4 @@ public:
     virtual bool exec() = 0;
 };
 
-#endif // CMDS_H
+#endif // CMDITEM_H
