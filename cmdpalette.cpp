@@ -1,7 +1,7 @@
 #include "cmdpalette.h"
 #include "ui_cmd.h"
-#include "systemcmd.h"
-#include "power.h"
+#include "cmditem/systemcmd.h"
+#include "cmditem/power.h"
 #include <Windows.h>
 #include <QDebug>
 #include <QtMath>

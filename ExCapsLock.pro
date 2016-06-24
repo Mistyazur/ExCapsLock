@@ -13,21 +13,23 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     keyboardhook.cpp \
-    cmditem.cpp \
     cmdpalette.cpp \
-    systemcmd.cpp \
-    power.cpp \
-    query.cpp \
-    shadowwidget.cpp
+    shadowwidget.cpp \
+    CmdItem/apps.cpp \
+    CmdItem/cmditem.cpp \
+    CmdItem/power.cpp \
+    CmdItem/systemcmd.cpp \
+    processretrieval.cpp
 
 HEADERS  += \
     keyboardhook.h \
-    cmditem.h \
     cmdpalette.h \
-    systemcmd.h \
-    power.h \
-    query.h \
-    shadowwidget.h
+    shadowwidget.h \
+    CmdItem/apps.h \
+    CmdItem/cmditem.h \
+    CmdItem/power.h \
+    CmdItem/systemcmd.h \
+    processretrieval.h
 
 FORMS    += cmd.ui
 

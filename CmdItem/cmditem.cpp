@@ -5,3 +5,8 @@ CmdItem::CmdItem(const QString &text) :
 {
 
 }
+
+const QStandardItemModel &CmdItem::resModel()
+{
+    return m_resModel;
+}
