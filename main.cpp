@@ -1,13 +1,13 @@
 #include <QApplication>
 #include <wmi.h>
 #include "keyboardhook.h"
-#include "processretrieval.h"
+#include "processretriever.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     KeyboardHook kh;
-    ProcessRetrieval pr;
+    ProcessRetriever pr;
 
     return a.exec();
 }
