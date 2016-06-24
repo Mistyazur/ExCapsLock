@@ -7,7 +7,7 @@ SystemCmd::SystemCmd(const QString &text, const QString &cmd) :
 {
 }
 
-bool SystemCmd::exec()
+int SystemCmd::exec()
 {
-    return QProcess::startDetached(m_cmd);
+    return (QProcess::startDetached(m_cmd) ? CMD_SUCCEED : CMD_FAILED);
 }

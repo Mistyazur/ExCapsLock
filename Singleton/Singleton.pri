@@ -1,2 +1,2 @@
-HEADERS += callonce.h \
-        singleton.h
+HEADERS += Singleton/callonce.h \
+        Singleton/singleton.h

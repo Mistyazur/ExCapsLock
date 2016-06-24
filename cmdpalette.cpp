@@ -8,10 +8,9 @@
 #include <QPainter>
 
 
-CmdPalette::CmdPalette(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::Cmd),
-    m_shadow("../ExCapsLock/src/window_shadow.png")
+CmdPalette::CmdPalette(ShadowWidget *parent) :
+    ShadowWidget(parent),
+    ui(new Ui::Cmd)
 {
     // Set window attributes
     setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
@@ -29,10 +28,10 @@ CmdPalette::CmdPalette(QWidget *parent) :
     m_stdModel = new QStandardItemModel(this);
     ui->listView->setModel(m_stdModel);
 
-    m_stdModel->setItem(0, 0, new Power("Power: Sleep", 0));
-    m_stdModel->setItem(1, 0, new Power("Power: Hibernate", 1));
-    m_stdModel->setItem(2, 0, new Power("Power: Shut Down", 2));
-    m_stdModel->setItem(3, 0, new Power("Power: Restart", 3));
+    m_stdModel->setItem(0, new Power("Power: Sleep", 0));
+    m_stdModel->setItem(1, new Power("Power: Hibernate", 1));
+    m_stdModel->setItem(2, new Power("Power: Shut Down", 2));
+    m_stdModel->setItem(3, new Power("Power: Restart", 3));
     ui->listView->selectionModel()->setCurrentIndex(m_stdModel->index(0, 0), QItemSelectionModel::ClearAndSelect);
 
     connect(ui->lineEdit, &QLineEdit::textEdited, this, &CmdPalette::textEdited);
@@ -45,39 +44,6 @@ CmdPalette::~CmdPalette()
 
 void CmdPalette::textEdited()
 {
-}
-
-// Draw shadow
-void CmdPalette::paintEvent(QPaintEvent *)
-{
-    QPainter painter(this);
-
-    QRect bottom(5, 136, 200, 7);
-    QRect top(5, 0, 200, 3);
-    QRect left(0, 3, 5, 133);
-    QRect right(205, 3, 5, 133);
-    QRect topRight(205, 0, 5, 3);
-    QRect topLeft(0, 0, 5, 3);
-    QRect bottomLeft(0, 136, 5, 7);
-    QRect bottomRight(205, 136, 5, 7);
-
-    QRect tBottom(5, this->height() - 7, this->width() - 10, 7);
-    QRect tTop(5, 0, this->width() - 10, 3);
-    QRect tLeft(0, 3, 5, this->height() - 10);
-    QRect tRight(this->width() - 5, 3, 5, this->height() - 10);
-    QRect tTopLeft(0, 0, 5, 3);
-    QRect tTopRight(this->width() - 5, 0, 5, 3);
-    QRect tBottomLeft(0, this->height() - 7, 5, 7);
-    QRect tBottomRight(this->width() - 5, this->height() - 7, 5, 7);
-
-    painter.drawPixmap(tBottom, m_shadow, bottom);
-    painter.drawPixmap(tTop, m_shadow, top);
-    painter.drawPixmap(tLeft, m_shadow, left);
-    painter.drawPixmap(tRight, m_shadow, right);
-    painter.drawPixmap(tTopRight, m_shadow, topRight);
-    painter.drawPixmap(tTopLeft, m_shadow, topLeft);
-    painter.drawPixmap(tBottomLeft, m_shadow, bottomLeft);
-    painter.drawPixmap(tBottomRight, m_shadow, bottomRight);
 }
 
 void CmdPalette::keyPressEvent(QKeyEvent *event)

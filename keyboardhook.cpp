@@ -31,7 +31,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
     if (prevWParam != wParam || prevVKeyCode != pKey->vkCode)
     {
-        qDebug()<<"KEY:"<<wParam<<pKey->vkCode<<(pKey->flags & LLKHF_INJECTED);
+//        qDebug()<<"KEY:"<<wParam<<pKey->vkCode<<(pKey->flags & LLKHF_INJECTED);
         if (wParam == WM_KEYDOWN)
         {
             if (pKey->vkCode == VK_CAPITAL)

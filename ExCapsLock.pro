@@ -16,14 +16,18 @@ SOURCES += main.cpp \
     cmditem.cpp \
     cmdpalette.cpp \
     systemcmd.cpp \
-    power.cpp
+    power.cpp \
+    query.cpp \
+    shadowwidget.cpp
 
 HEADERS  += \
     keyboardhook.h \
     cmditem.h \
     cmdpalette.h \
     systemcmd.h \
-    power.h
+    power.h \
+    query.h \
+    shadowwidget.h
 
 FORMS    += cmd.ui
 
@@ -36,3 +40,6 @@ INCLUDEPATH += Singleton \
 
 include(Singleton/Singleton.pri)
 include(WMI/WMI.pri)
+
+RESOURCES += \
+    src.qrc

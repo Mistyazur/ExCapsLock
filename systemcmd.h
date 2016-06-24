@@ -7,7 +7,7 @@ class SystemCmd : public CmdItem
 {
 public:
     SystemCmd(const QString &text, const QString &cmd);
-    bool exec();
+    int exec();
 private:
     QString m_cmd;
 };

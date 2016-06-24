@@ -1,31 +1,28 @@
 #ifndef CMDPALETTE_H
 #define CMDPALETTE_H
 
-#include <QWidget>
 #include <QKeyEvent>
-#include <QPixmap>
 #include <QStandardItemModel>
+#include "shadowwidget.h"
 
 namespace Ui {
 class Cmd;
 }
 
-class CmdPalette : public QWidget
+class CmdPalette : public ShadowWidget
 {
     Q_OBJECT
 
 public:
-    explicit CmdPalette(QWidget *parent = 0);
+    explicit CmdPalette(ShadowWidget *parent = 0);
     ~CmdPalette();
 public slots:
     void textEdited();
 protected:
-    void paintEvent(QPaintEvent *);
     void keyPressEvent(QKeyEvent *event);
 private:
     Ui::Cmd *ui;
-    QPixmap m_shadow;
-    QStandardItemModel* m_stdModel;
+    QStandardItemModel *m_stdModel;
 };
 
 #endif // CMDPALETTE_H

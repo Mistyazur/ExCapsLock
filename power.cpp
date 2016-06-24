@@ -19,7 +19,7 @@ Power::Power(const QString &text, int type) :
     ::AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0);
 }
 
-bool Power::exec()
+int Power::exec()
 {
     bool ret = false;
 
@@ -39,5 +39,5 @@ bool Power::exec()
         break;
     }
 
-    return ret;
+    return (ret ? CMD_SUCCEED : CMD_FAILED);
 }

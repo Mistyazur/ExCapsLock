@@ -1,4 +1,3 @@
 QT += axcontainer
 
-HEADERS += \
-    wmi.h
+HEADERS += WMI/wmi.h
