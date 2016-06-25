@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QSettings>
 #include <QFile>
+#include <QDebug>
 
 ProcessRetriever::ProcessRetriever(QObject *parent) :
     QObject(parent)
@@ -31,21 +32,21 @@ ProcessRetriever::ProcessRetriever(QObject *parent) :
     }
 
 
-    startTimer(10000);
+    startTimer(5000);
 }
 
 void ProcessRetriever::timerEvent(QTimerEvent *)
 {
     QSettings settings(qApp->applicationDirPath() + "/ExCapsLock.ini", QSettings::IniFormat);
     QVariantList vlProcess;
-    WmiInstance.get("SELECT * FROM Win32_Process", "ExecutablePath", vlProcess);
+    WmiInstance.get("SELECT * FROM Win32_Process WHERE (ExecutablePath IS NOT NULL)", "ExecutablePath", vlProcess);
     foreach (QVariant v, vlProcess)
     {
         if (v.isValid())
         {
             QString &process = v.toString();
             process.replace("\\", "/");
-            if (!m_processList.contains(process))
+            if (!process.startsWith("c:/windows", Qt::CaseInsensitive) && !m_processList.contains(process))
                 m_processList += process;
         }
     }

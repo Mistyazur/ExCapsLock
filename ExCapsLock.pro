@@ -19,7 +19,9 @@ SOURCES += main.cpp \
     CmdItem/cmditem.cpp \
     CmdItem/power.cpp \
     CmdItem/systemcmd.cpp \
-    processretriever.cpp
+    processretriever.cpp \
+    appdetector.cpp \
+    CmdItem/applauncher.cpp
 
 HEADERS  += \
     keyboardhook.h \
@@ -29,7 +31,9 @@ HEADERS  += \
     CmdItem/cmditem.h \
     CmdItem/power.h \
     CmdItem/systemcmd.h \
-    processretriever.h
+    processretriever.h \
+    appdetector.h \
+    CmdItem/applauncher.h
 
 FORMS    += cmd.ui
 

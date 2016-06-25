@@ -18,6 +18,7 @@ public:
     ~CmdPalette();
 public slots:
     void textEdited();
+    void cmdActivate(const QModelIndex &index);
 protected:
     void keyPressEvent(QKeyEvent *event);
 private:

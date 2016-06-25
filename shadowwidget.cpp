@@ -1,5 +1,5 @@
-#include <QPainter>
 #include "shadowwidget.h"
+#include <QPainter>
 
 ShadowWidget::ShadowWidget(QWidget *parent) :
     QWidget(parent),

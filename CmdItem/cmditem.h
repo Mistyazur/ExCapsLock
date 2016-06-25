@@ -12,10 +12,11 @@ class CmdItem : public QStandardItem
 {
 public:
     CmdItem(const QString &text);
+    ~CmdItem();
     virtual int exec() = 0;
-    const QStandardItemModel &resModel();
+    QStandardItemModel *resModel();
 protected:
-    QStandardItemModel m_resModel;
+    QStandardItemModel *m_resModel;
 };
 
 #endif // CMDITEM_H

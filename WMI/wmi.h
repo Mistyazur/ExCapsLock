@@ -16,22 +16,22 @@ public:
 
     void get(const QString &query, const QString &property, QVariantList &vList)
     {
-        QAxObject *objIWbemLocator = new QAxObject("WbemScripting.SWbemLocator");
-        QAxObject *objWMIService = objIWbemLocator->querySubObject("ConnectServer(QString&,QString&)",QString("."),QString("root\\cimv2"));
+        static VARIANT *theItem = new VARIANT;
+        static QAxObject *objIWbemLocator = new QAxObject("WbemScripting.SWbemLocator");
+        static QAxObject *objWMIService = objIWbemLocator->querySubObject("ConnectServer(QString&,QString&)",QString("."),QString("root\\cimv2"));
         QAxObject *objInterList = objWMIService->querySubObject("ExecQuery(QString&))", query);
         QAxObject *enum1 = objInterList->querySubObject("_NewEnum");
         IEnumVARIANT* enumInterface = 0;
 
         enum1->queryInterface((const QUuid)IID_IEnumVARIANT, (void**)&enumInterface);
         enumInterface->Reset();
-        for (int i = 0; i < objInterList->dynamicCall("Count").toInt(); i++)
+        int resCount = objInterList->dynamicCall("Count").toInt();
+        for (int i = 0; i < resCount; ++i)
         {
-            VARIANT *theItem = (VARIANT*)malloc(sizeof(VARIANT));
-            if (enumInterface->Next(1,theItem,NULL) != S_FALSE)
+            if (enumInterface->Next(1, theItem, NULL) != S_FALSE)
             {
-                QAxObject *item = new QAxObject((IUnknown *)theItem->punkVal);
-                if(item)
-                    vList += item->dynamicCall(property.toLatin1().data());
+                QAxObject item((IUnknown *)theItem->punkVal);
+                vList += item.dynamicCall(property.toLatin1().data());
             }
         }
     }
