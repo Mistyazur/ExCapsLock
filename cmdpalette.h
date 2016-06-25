@@ -17,6 +17,7 @@ public:
     explicit CmdPalette(ShadowWidget *parent = 0);
     ~CmdPalette();
     void activate();
+    void reset();
 public slots:
     void textEdited();
     void cmdActivate(const QModelIndex &index);
@@ -26,7 +27,6 @@ private:
     Ui::Cmd *ui;
     QStandardItemModel *m_stdModel;
 
-    void reset();
     void updateList(QStandardItemModel *model);
 };
 
