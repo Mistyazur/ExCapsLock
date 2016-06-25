@@ -129,7 +129,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
       <item>
        <widget class="QLineEdit" name="lineEdit">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>

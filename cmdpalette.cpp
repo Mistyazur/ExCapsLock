@@ -16,9 +16,6 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground);
 
-    // Activate this window. Function "activateWindow" doesn't work.
-    setWindowState(Qt::WindowActive);
-
     // Set UI
     setFixedSize(600, 400);
     ui->setupUi(this);
@@ -27,14 +24,12 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 
     // Model for list view
     m_stdModel = new QStandardItemModel(this);
-    ui->listView->setModel(m_stdModel);
-
     m_stdModel->setItem(0, new Power("Power: Sleep", 0));
-    m_stdModel->setItem(1, new Power("Power: Hibernate", 1));
+    m_stdModel->setItem(1, new Power("Power: Hibernate", 10));
     m_stdModel->setItem(2, new Power("Power: Shut Down", 2));
     m_stdModel->setItem(3, new Power("Power: Restart", 3));
     m_stdModel->setItem(4, new Apps("Run App"));
-    ui->listView->selectionModel()->setCurrentIndex(m_stdModel->index(0, 0), QItemSelectionModel::ClearAndSelect);
+    updateList(m_stdModel);
 
     connect(ui->lineEdit, &QLineEdit::textEdited, this, &CmdPalette::textEdited);
     connect(ui->listView, &QListView::activated, this, &CmdPalette::cmdActivate);
@@ -43,6 +38,18 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 CmdPalette::~CmdPalette()
 {
     delete ui;
+}
+
+void CmdPalette::activate()
+{
+    if (!isVisible())
+    {
+        // Show and activate this window. Function "activateWindow" doesn't work.
+        show();
+        setWindowState(Qt::WindowNoState);
+        setWindowState(Qt::WindowActive);
+//        ::SetFocus((HWND)winId());
+    }
 }
 
 void CmdPalette::textEdited()
@@ -55,14 +62,20 @@ void CmdPalette::cmdActivate(const QModelIndex &index)
     item->exec();
     if (item->resModel()->columnCount() > 0)
     {
-        ui->listView->setModel(item->resModel());
+        updateList(item->resModel());
+    }
+    else
+    {
+        reset();
     }
 }
 
 void CmdPalette::keyPressEvent(QKeyEvent *event)
 {
     if (event->nativeVirtualKey() == VK_ESCAPE)
-        hide();
+    {
+        reset();
+    }
     else if (event->nativeVirtualKey() == VK_RETURN)
     {
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
@@ -84,4 +97,17 @@ void CmdPalette::keyPressEvent(QKeyEvent *event)
 //            }
 //        }
     }
+}
+
+void CmdPalette::reset()
+{
+   updateList(m_stdModel);
+   hide();
+}
+
+void CmdPalette::updateList(QStandardItemModel *model)
+{
+    ui->lineEdit->clear();
+    ui->listView->setModel(model);
+    ui->listView->selectionModel()->setCurrentIndex(model->index(0, 0), QItemSelectionModel::ClearAndSelect);
 }

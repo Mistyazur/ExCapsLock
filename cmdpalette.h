@@ -16,6 +16,7 @@ class CmdPalette : public ShadowWidget
 public:
     explicit CmdPalette(ShadowWidget *parent = 0);
     ~CmdPalette();
+    void activate();
 public slots:
     void textEdited();
     void cmdActivate(const QModelIndex &index);
@@ -24,6 +25,9 @@ protected:
 private:
     Ui::Cmd *ui;
     QStandardItemModel *m_stdModel;
+
+    void reset();
+    void updateList(QStandardItemModel *model);
 };
 
 #endif // CMDPALETTE_H

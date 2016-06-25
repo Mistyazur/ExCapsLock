@@ -2,7 +2,7 @@
 #include "cmdpalette.h"
 #include <QDebug>
 
-CmdPalette *g_cmd = nullptr;
+CmdPalette *g_cmdPalette = nullptr;
 
 void KeyClick(WORD key)
 {
@@ -48,7 +48,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
                     if (pKey->vkCode == VK_SPACE)
                     {
                         // Capslock + space: show command
-                        g_cmd->show();
+                        g_cmdPalette->activate();
                     }
                     else if (pKey->vkCode == 'W')
                     {
@@ -108,8 +108,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 KeyboardHook::KeyboardHook(QObject *parent) : QObject(parent)
 {
-    g_cmd = new CmdPalette();
-    g_cmd->show();
+    g_cmdPalette = new CmdPalette();
     HHOOK keyboardHook = ::SetWindowsHookEx(WH_KEYBOARD_LL,
                                             KbHookProc,
                                             ::GetModuleHandle(NULL),
@@ -118,5 +117,5 @@ KeyboardHook::KeyboardHook(QObject *parent) : QObject(parent)
 
 KeyboardHook::~KeyboardHook()
 {
-    delete g_cmd;
+    delete g_cmdPalette;
 }
