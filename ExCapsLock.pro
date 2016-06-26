@@ -21,7 +21,9 @@ SOURCES += main.cpp \
     CmdItem/systemcmd.cpp \
     processretriever.cpp \
     appdetector.cpp \
-    CmdItem/applauncher.cpp
+    CmdItem/applauncher.cpp \
+    cmditemdelegate.cpp \
+    cmditemsortfilterproxymodel.cpp
 
 HEADERS  += \
     keyboardhook.h \
@@ -33,7 +35,9 @@ HEADERS  += \
     CmdItem/systemcmd.h \
     processretriever.h \
     appdetector.h \
-    CmdItem/applauncher.h
+    CmdItem/applauncher.h \
+    cmditemdelegate.h \
+    cmditemsortfilterproxymodel.h
 
 FORMS    += cmd.ui
 

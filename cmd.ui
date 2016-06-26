@@ -47,11 +47,12 @@ QListView {
 	color: #bdbdbd;
 	border: 0 transparent;
 	margin: 6px 6px 6px 6px;
+	show-decoration-selected: 1
 }
 
 QListView::item:selected:!active {
 	color: #bdbdbd;
-    background: #073655;
+	background: #073655;
 }
 
 QListView::item:hover {
@@ -65,25 +66,25 @@ QScrollBar:vertical {
 
 QScrollBar::handle:vertical {
 	background: rgba(70, 70, 70, 200);
-    min-height: 30px;
+	min-height: 30px;
 }
 
 QScrollBar::add-line:vertical {
-    border: 0;
-    width: 0;
-    height: 0;
+	border: 0;
+	width: 0;
+	height: 0;
 	background: transparent;
 }
 
 QScrollBar::sub-line:vertical {
-    border: 0;
-    width: 0;
-    height: 0;
+	border: 0;
+	width: 0;
+	height: 0;
 	background: transparent;
 }
 
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
-    background: none;
+	background: none;
 }</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">

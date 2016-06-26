@@ -1,9 +1,11 @@
 #ifndef CMDPALETTE_H
 #define CMDPALETTE_H
 
+#include "shadowwidget.h"
+#include "cmditemsortfilterproxymodel.h"
+#include "cmditemdelegate.h"
 #include <QKeyEvent>
 #include <QStandardItemModel>
-#include "shadowwidget.h"
 
 namespace Ui {
 class Cmd;
@@ -26,8 +28,10 @@ protected:
 private:
     Ui::Cmd *ui;
     QStandardItemModel *m_stdModel;
+    CmdItemSortFilterProxyModel *m_proxyModel;
+    CmdItemDelegate *m_delegate;
 
-    void updateList(QStandardItemModel *model);
+    void updateCmdView(QStandardItemModel *model);
 };
 
 #endif // CMDPALETTE_H

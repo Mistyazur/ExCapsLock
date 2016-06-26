@@ -26,16 +26,16 @@ int Power::exec()
     switch (m_type)
     {
     case 0:
-        ret = ::SetSuspendState(false, false, false);	// Sleep
+//        ret = ::SetSuspendState(false, false, false);	// Sleep
         break;
     case 1:
-        ret = ::SetSuspendState(true, false, false);	// hibernate
+//        ret = ::SetSuspendState(true, false, false);	// hibernate
         break;
     case 2:
-        ret = ::ExitWindowsEx(EWX_SHUTDOWN, 0);
+//        ret = ::ExitWindowsEx(EWX_SHUTDOWN, 0);
         break;
     case 3:
-        ret = ::ExitWindowsEx(EWX_REBOOT, 0);
+//        ret = ::ExitWindowsEx(EWX_REBOOT, 0);
         break;
     }
 
