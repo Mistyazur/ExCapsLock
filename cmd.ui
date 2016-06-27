@@ -33,7 +33,7 @@
   <property name="styleSheet">
    <string notr="true">
 QWidget {
-	background-color: #252525;
+	background-color: #252526;
 }
 
 QLineEdit {
@@ -46,7 +46,7 @@ QLineEdit {
 QListView {
 	color: #bdbdbd;
 	border: 0 transparent;
-	margin: 6px 6px 6px 6px;
+	margin: 0px 0px 0px 0px;
 	show-decoration-selected: 1
 }
 
@@ -180,6 +180,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
         </property>
         <property name="sizeAdjustPolicy">
          <enum>QAbstractScrollArea::AdjustIgnored</enum>
+        </property>
+        <property name="autoScrollMargin">
+         <number>16</number>
         </property>
         <property name="editTriggers">
          <set>QAbstractItemView::NoEditTriggers</set>

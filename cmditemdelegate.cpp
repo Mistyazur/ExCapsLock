@@ -6,10 +6,9 @@
 #include <QAbstractTextDocumentLayout>
 #include <QDebug>
 
-#define CSS_TEXTDOC	"c { color: #bdbdbd; font: 14px; font-family: 'Consolas'; }"	\
-                        "p { color: #6e7e8e; font : 14px; font-family: 'Consolas'; }"	\
-                        "hl { color: #0097fb; font : bold; }"
-
+#define CSS_TEXTDOC		"h6 { color: #bdbdbd; font: 13px; font-family: 'monospace'; margin: 0px 0px 0px 5px; }"		\
+                        "p { color: #6f6f6f; font: 13px; font-family: 'monospace'; margin: 8px 0px 0px 5px; }"		\
+                        "hl { color: #0097fb; }"
 
 QTextDocument doc;
 
@@ -19,47 +18,72 @@ CmdItemDelegate::CmdItemDelegate(QObject *parent) :
     doc.setDefaultStyleSheet(CSS_TEXTDOC);
 }
 
+QString CmdItemDelegate::caption(const QString &text)
+{
+    return QString("<h6>%1</h6>").arg(text);
+}
+
+QString CmdItemDelegate::paragraph(const QString &text)
+{
+    return QString("<p>%1</p>").arg(text);
+}
+
+QString CmdItemDelegate::highlight(const QString &text)
+{
+   return QString("<hl>%1</hl>").arg(text);
+}
+
 void CmdItemDelegate::keywordChanged(QString keyword)
 {
     m_keyword = keyword;
-//    QRegExp rxlen("(\\d+)(?:\\s*)(cm|inch)");
-    QRegExp rxlen("(\\d+)(\\s*)(cm|inch(es)?)");
-     int pos = rxlen.indexIn("Length: 189cm");
-     if (pos > -1) {
-         QString value = rxlen.cap(1); // "189"
-         QString unit = rxlen.cap(2);  // "cm"
-         qDebug()<<rxlen.cap(0)<<rxlen.cap(1)<<rxlen.cap(2)<<rxlen.cap(3);
-     }
 }
 
 void CmdItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    QRegExp rx("", Qt::CaseInsensitive, QRegExp::RegExp);
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
     QStyle *style = opt.widget? opt.widget->style() : QApplication::style();
 
-    // Set text
-//    doc.setHtml("<c>Add</c><p><hl>A</hl>dd.</p>");
-    QString text = opt.text;
-//    qDebug()<<1<<text;
-//    QString search0, search1;
-//    foreach(QChar c, m_keyword)
-//        search0 += QString("(\\b%1[a-zA-Z]*\\b)").arg(c) + "(.*)";
-//    search1 = m_keyword;
-//    QRegExp rx(search0, Qt::CaseInsensitive, QRegExp::RegExp);
-//    qDebug()<<2<<search0<<rx.cap(0)<<rx.cap(1)<<rx.cap(2);
-//    if (!m_keyword.isEmpty())
-//    {
-//        int pos = 0;
-//        while ((pos = rx.indexIn(text, pos)) != -1)
-//        {
-//            qDebug()<<3<<text.mid(pos, rx.matchedLength())<<text;
-//            text.replace(pos, rx.matchedLength(), QString("<hl>%1</hl>").arg(text.mid(pos, rx.matchedLength())));
-//            pos += rx.matchedLength();
-//        }
-//    }
+    // Get caption text
+    QString capText = opt.text;
+    rx.setPattern(S_CAPTION(".+"));
+    if (rx.indexIn(capText) != -1)
+        capText = rx.cap(0);
+    else
+        capText = opt.text;
+    qDebug()<<capText;
 
-    doc.setHtml(opt.text);
+    // Make keyword highlight
+    QString text = opt.text;
+    if (!m_keyword.isEmpty())
+    {
+        QString search;
+        foreach(QChar c, m_keyword)
+            search += QString("(?:\\b(%1)[a-zA-Z]*\\b)").arg(c) + "(?:.*)";
+        rx.setPattern(search);
+        if (rx.indexIn(capText) != -1)
+        {
+            for (int i = m_keyword.length(); i > 0; --i)
+            {
+                int pos = rx.pos(i);
+                int len = rx.cap(i).length();
+                if (pos != -1)
+                {
+                    text.replace(pos, len, S_HIGHLIGHT(text.mid(pos, len)));
+                }
+            }
+        }
+        else
+        {
+            text.replace(capText.indexOf(m_keyword, 0, Qt::CaseInsensitive),
+                         m_keyword.length(),
+                         S_HIGHLIGHT(text.mid(capText.indexOf(m_keyword, 0, Qt::CaseInsensitive), m_keyword.length())));
+        }
+    }
+
+    // Set text
+    doc.setHtml(text);
 
     // Painting item without text
     opt.text.clear();
@@ -86,7 +110,6 @@ QSize CmdItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
 
-//    doc.setHtml("<c>Add</c><p><hl>A</hl>dd.</p>");
     doc.setHtml(opt.text);
     doc.setTextWidth(opt.rect.width());
     return QSize(doc.idealWidth(), doc.size().height());

@@ -1,5 +1,6 @@
 #include "apps.h"
 #include "applauncher.h"
+#include "cmditemdelegate.h"
 #include <QApplication>
 #include <QSettings>
 
@@ -11,7 +12,6 @@ Apps::Apps(const QString &text)  :
 int Apps::exec()
 {
     QSettings settings(qApp->applicationDirPath() + "/ExCapsLock.ini", QSettings::IniFormat);
-    QStringList processList;
     for (int i = 0; ; ++i)
     {
         QString &key = QString("Apps/path%1").arg(i);
@@ -20,8 +20,13 @@ int Apps::exec()
             break;
         else
         {
-//            processList += process;
-            m_resModel->setItem(i, new AppLauncher(process));
+            QRegExp rx("/(\\w+)\\.exe", Qt::CaseInsensitive, QRegExp::RegExp);
+            if (rx.indexIn(process) != -1)
+            {
+                m_resModel->setItem(i, new AppLauncher(S_CAPTION(rx.cap(1)) + S_PARAGRAPH(process)));
+            }
+            else
+                m_resModel->setItem(i, new AppLauncher(S_CAPTION(process)));
         }
     }
 

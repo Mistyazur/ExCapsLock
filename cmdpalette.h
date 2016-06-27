@@ -23,7 +23,7 @@ public:
 signals:
     void keywordChanged(QString keyword);
 public slots:
-    void textEdited();
+    void textChanged();
     void cmdActivate(const QModelIndex &index);
 protected:
     void keyPressEvent(QKeyEvent *event);

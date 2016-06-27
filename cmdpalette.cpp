@@ -27,24 +27,25 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 
     // Source model for list view
     m_stdModel = new QStandardItemModel(this);
-//    m_stdModel->setItem(0, new Power("Power: Sleep", 0));
-//    m_stdModel->setItem(1, new Power("Power: Hibernate", 1));
-//    m_stdModel->setItem(2, new Power("Power: Shut Down", 2));
-//    m_stdModel->setItem(3, new Power("Power: Restart", 3));
-//    m_stdModel->setItem(4, new Apps("Run App"));
-    m_stdModel->setItem(0, new QStandardItem("<c>Install My Extension<\c>"));
-    m_stdModel->setItem(1, new QStandardItem("<c>Extension: Install Extension<\c>"));
-    m_stdModel->setItem(2, new QStandardItem("<c>Extension: View<\c>"));
-    m_stdModel->setItem(3, new QStandardItem("<c>Extension: email<\c>"));
+    m_stdModel->setItem(0, new Power(S_CAPTION("Power: Sleep"), 0));
+    m_stdModel->setItem(1, new Power(S_CAPTION("Power: Hibernate"), 1));
+    m_stdModel->setItem(2, new Power(S_CAPTION("Power: Shut Down"), 2));
+    m_stdModel->setItem(3, new Power(S_CAPTION("Power: Restart"), 3));
+    m_stdModel->setItem(4, new Apps(S_CAPTION("Run App")));
+//    m_stdModel->setItem(0, new QStandardItem(S_CAPTION("Install My Extension")));
+//    m_stdModel->setItem(1, new QStandardItem(S_CAPTION("Extension: Install Extension")));
+//    m_stdModel->setItem(2, new QStandardItem(S_CAPTION("Extension: View")));
+//    m_stdModel->setItem(3, new QStandardItem(S_CAPTION("Extension: email")));
     updateCmdView(m_stdModel);
 
     // Delegate for highlight input matches
     m_delegate = new CmdItemDelegate(this);
     ui->listView->setItemDelegate(m_delegate);
 
-    connect(ui->lineEdit, &QLineEdit::textEdited, this, &CmdPalette::textEdited);
+    connect(ui->lineEdit, &QLineEdit::textChanged, this, &CmdPalette::textChanged);
     connect(ui->listView, &QListView::activated, this, &CmdPalette::cmdActivate);
     connect(this, &CmdPalette::keywordChanged, m_delegate, &CmdItemDelegate::keywordChanged);
+    connect(this, &CmdPalette::keywordChanged, m_proxyModel, &CmdItemSortFilterProxyModel::keywordChanged);
 
     activate();
 }
@@ -66,7 +67,7 @@ void CmdPalette::activate()
     }
 }
 
-void CmdPalette::textEdited()
+void CmdPalette::textChanged()
 {
     // Install My Extension
     // Extension: Install Extension
@@ -83,19 +84,28 @@ void CmdPalette::textEdited()
     QRegExp regExp(search, Qt::CaseInsensitive, QRegExp::RegExp);
     m_proxyModel->setFilterRegExp(regExp);
 
-    // Set highlight
+    // Set highlight and sort by keyword
     emit keywordChanged(ui->lineEdit->text());
 
-    // Update
+    // Update to make highlight effect
     ui->listView->update();
+
+    // Sort to make affect
+    m_proxyModel->sort(-1, Qt::AscendingOrder);
+    m_proxyModel->sort(0, Qt::AscendingOrder);
+
+    // Select first item
+    ui->listView->selectionModel()->setCurrentIndex(m_proxyModel->index(0, 0), QItemSelectionModel::ClearAndSelect);
 }
 
 void CmdPalette::cmdActivate(const QModelIndex &index)
 {
     CmdItem *item = (CmdItem *)((QStandardItemModel *)m_proxyModel->sourceModel())->itemFromIndex(m_proxyModel->mapToSource(index));
     item->exec();
-    if (item->resModel()->columnCount() > 0)
+
+    if (item->resModel()->rowCount() > 0)
     {
+        ui->lineEdit->clear();
         updateCmdView(item->resModel());
     }
     else
@@ -121,15 +131,6 @@ void CmdPalette::keyPressEvent(QKeyEvent *event)
     else if (event->nativeVirtualKey() == VK_UP)
     {
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
-//        QItemSelectionModel *selectionModel = ui->listView->selectionModel();
-//        foreach(const QModelIndex &index, selectionModel->selectedIndexes())
-//        {
-//            qDebug()<<index.data(Qt::DisplayRole).toString() << index.row() <<index.column();
-//            if (index.row() > 0)
-//            {
-//                selectionModel->select(m_stdModel->index(index.row() - 1, index.column()), QItemSelectionModel::ClearAndSelect);
-//            }
-//        }
     }
 }
 
@@ -142,8 +143,17 @@ void CmdPalette::reset()
 
 void CmdPalette::updateCmdView(QStandardItemModel *model)
 {
+    // Set model
     m_proxyModel->setSourceModel(model);
-    m_proxyModel->sort(0, Qt::AscendingOrder);
     ui->listView->setModel(m_proxyModel);
+
+    // Clear filter regexp
+    m_proxyModel->setFilterRegExp("");
+
+    // Sort
+    m_proxyModel->sort(-1, Qt::AscendingOrder);
+    m_proxyModel->sort(0, Qt::AscendingOrder);
+
+    // Select first item
     ui->listView->selectionModel()->setCurrentIndex(m_proxyModel->index(0, 0), QItemSelectionModel::ClearAndSelect);
 }
