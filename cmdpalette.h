@@ -20,6 +20,8 @@ public:
     ~CmdPalette();
     void activate();
     void reset();
+signals:
+    void keywordChanged(QString keyword);
 public slots:
     void textEdited();
     void cmdActivate(const QModelIndex &index);

@@ -32,10 +32,10 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 //    m_stdModel->setItem(2, new Power("Power: Shut Down", 2));
 //    m_stdModel->setItem(3, new Power("Power: Restart", 3));
 //    m_stdModel->setItem(4, new Apps("Run App"));
-    m_stdModel->setItem(0, new QStandardItem("Install My Extension"));
-    m_stdModel->setItem(1, new QStandardItem("Extension: Install Extension"));
-    m_stdModel->setItem(2, new QStandardItem("Extension: View"));
-    m_stdModel->setItem(3, new QStandardItem("Extension: email"));
+    m_stdModel->setItem(0, new QStandardItem("<c>Install My Extension<\c>"));
+    m_stdModel->setItem(1, new QStandardItem("<c>Extension: Install Extension<\c>"));
+    m_stdModel->setItem(2, new QStandardItem("<c>Extension: View<\c>"));
+    m_stdModel->setItem(3, new QStandardItem("<c>Extension: email<\c>"));
     updateCmdView(m_stdModel);
 
     // Delegate for highlight input matches
@@ -44,6 +44,9 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 
     connect(ui->lineEdit, &QLineEdit::textEdited, this, &CmdPalette::textEdited);
     connect(ui->listView, &QListView::activated, this, &CmdPalette::cmdActivate);
+    connect(this, &CmdPalette::keywordChanged, m_delegate, &CmdItemDelegate::keywordChanged);
+
+    activate();
 }
 
 CmdPalette::~CmdPalette()
@@ -71,14 +74,20 @@ void CmdPalette::textEdited()
     // Extension: email
     // (\bi[a-zA-Z]*\b.*\be[a-zA-Z]*\b)|(.*ie.*)
     QString search, search0, search1;
-
     foreach(QChar c, ui->lineEdit->text())
         search0 += QString("\\b%1[a-zA-Z]*\\b").arg(c) + ".*";
-    search1 = QString(".*%1.*").arg(ui->lineEdit->text());
+    search1 = ui->lineEdit->text();
     search = QString("(%1)|(%2)").arg(search0).arg(search1);
 
+    // Set filter
     QRegExp regExp(search, Qt::CaseInsensitive, QRegExp::RegExp);
     m_proxyModel->setFilterRegExp(regExp);
+
+    // Set highlight
+    emit keywordChanged(ui->lineEdit->text());
+
+    // Update
+    ui->listView->update();
 }
 
 void CmdPalette::cmdActivate(const QModelIndex &index)
