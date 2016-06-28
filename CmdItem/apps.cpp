@@ -3,16 +3,16 @@
 #include "cmditemdelegate.h"
 #include <QApplication>
 #include <QSettings>
-#include <QDebug>
 
 Apps::Apps(const QString &text)  :
     CmdItem(text)
 {
 }
 
-int Apps::exec()
+bool Apps::exec()
 {
     QSettings settings(qApp->applicationDirPath() + "/ExCapsLock.ini", QSettings::IniFormat);
+    int index = 0;
     for (int i = 0; ; ++i)
     {
         QString &key = QString("Apps/path%1").arg(i);
@@ -24,13 +24,12 @@ int Apps::exec()
             QRegExp rx("/(.+)\\.exe", Qt::CaseInsensitive, QRegExp::RegExp);
             if (rx.lastIndexIn(process) != -1)
             {
-                m_resModel->setItem(i, new AppLauncher(rx.cap(1)));
-                m_resModel->setData(m_resModel->index(i, 0), process, CMD_PARAGRAPH);
+                m_resModel->setItem(index, new AppLauncher(rx.cap(1)));
+                m_resModel->setData(m_resModel->index(index, 0), process, CMD_PARAGRAPH);
+                ++index;
             }
-            else
-                qDebug()<<process;
         }
     }
 
-    return 0;
+    return true;
 }

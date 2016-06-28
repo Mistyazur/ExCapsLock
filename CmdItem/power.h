@@ -7,7 +7,7 @@ class Power : public CmdItem
 {
 public:
     Power(const QString &text, int type);
-    int exec();
+    bool exec();
 private:
     int m_type;
 };

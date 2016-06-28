@@ -7,7 +7,7 @@ class Apps : public CmdItem
 {
 public:
     Apps(const QString &text);
-    int exec();
+    bool exec();
 };
 
 #endif // APPS_H

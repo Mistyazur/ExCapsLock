@@ -7,7 +7,7 @@ class AppLauncher : public CmdItem
 {
 public:
     AppLauncher(const QString &text);
-    int exec();
+    bool exec();
 };
 
 #endif // APPLAUNCHER_H
