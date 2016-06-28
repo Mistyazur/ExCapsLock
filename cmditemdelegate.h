@@ -9,9 +9,6 @@ class CmdItemDelegate : public QStyledItemDelegate
     Q_OBJECT
 public:
     CmdItemDelegate(QObject *parent = 0);
-    static QString caption(const QString &text);
-    static QString paragraph(const QString &text);
-    static QString highlight(const QString &text);
 public slots:
     void keywordChanged(QString keyword);
 protected:
@@ -19,6 +16,8 @@ protected:
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
 private:
     QString m_keyword;
+
+    QString highlight(const QString &text) const;
 };
 
 #define S_CAPTION(t)	CmdItemDelegate::caption(t)

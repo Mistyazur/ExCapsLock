@@ -27,15 +27,15 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 
     // Source model for list view
     m_stdModel = new QStandardItemModel(this);
-    m_stdModel->setItem(0, new Power(S_CAPTION("Power: Sleep"), 0));
-    m_stdModel->setItem(1, new Power(S_CAPTION("Power: Hibernate"), 1));
-    m_stdModel->setItem(2, new Power(S_CAPTION("Power: Shut Down"), 2));
-    m_stdModel->setItem(3, new Power(S_CAPTION("Power: Restart"), 3));
-    m_stdModel->setItem(4, new Apps(S_CAPTION("Run App")));
-//    m_stdModel->setItem(0, new QStandardItem(S_CAPTION("Install My Extension")));
-//    m_stdModel->setItem(1, new QStandardItem(S_CAPTION("Extension: Install Extension")));
-//    m_stdModel->setItem(2, new QStandardItem(S_CAPTION("Extension: View")));
-//    m_stdModel->setItem(3, new QStandardItem(S_CAPTION("Extension: email")));
+    m_stdModel->setItem(0, new Power("Power: Sleep", 0));
+    m_stdModel->setItem(1, new Power("Power: Hibernate", 1));
+    m_stdModel->setItem(2, new Power("Power: Shut Down", 2));
+    m_stdModel->setItem(3, new Power("Power: Restart", 3));
+    m_stdModel->setItem(4, new Apps("Run App"));
+//    m_stdModel->setItem(0, new QStandardItem("Install My Extension"));
+//    m_stdModel->setItem(1, new QStandardItem("Extension: Install Extension"));
+//    m_stdModel->setItem(2, new QStandardItem("Extension: View"));
+//    m_stdModel->setItem(3, new QStandardItem("Extension: email"));
     updateCmdView(m_stdModel);
 
     // Delegate for highlight input matches

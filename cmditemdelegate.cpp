@@ -1,14 +1,15 @@
 #include "cmditemdelegate.h"
+#include "CmdItem/cmditem.h"
 #include <QApplication>
 #include <QPainter>
 #include <QTextDocument>
 #include <QStyle>
 #include <QAbstractTextDocumentLayout>
-#include <QDebug>
 
-#define CSS_TEXTDOC		"h6 { color: #bdbdbd; font: 13px; font-family: 'monospace'; margin: 0px 0px 0px 5px; }"		\
-                        "p { color: #6f6f6f; font: 13px; font-family: 'monospace'; margin: 8px 0px 0px 5px; }"		\
+#define CSS_TEXTDOC	"h6 { color: #bdbdbd; font: 13px; font-family: 'monospace'; margin: 0px 0px 4px 4px; }"		\
+                        "p { color: #6f6f6f; font: 13px; font-family: 'monospace'; margin: 4px 0px 0px 4px; }"		\
                         "hl { color: #0097fb; }"
+
 
 QTextDocument doc;
 
@@ -16,21 +17,6 @@ CmdItemDelegate::CmdItemDelegate(QObject *parent) :
     QStyledItemDelegate(parent)
 {
     doc.setDefaultStyleSheet(CSS_TEXTDOC);
-}
-
-QString CmdItemDelegate::caption(const QString &text)
-{
-    return QString("<h6>%1</h6>").arg(text);
-}
-
-QString CmdItemDelegate::paragraph(const QString &text)
-{
-    return QString("<p>%1</p>").arg(text);
-}
-
-QString CmdItemDelegate::highlight(const QString &text)
-{
-   return QString("<hl>%1</hl>").arg(text);
 }
 
 void CmdItemDelegate::keywordChanged(QString keyword)
@@ -45,24 +31,18 @@ void CmdItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     initStyleOption(&opt, index);
     QStyle *style = opt.widget? opt.widget->style() : QApplication::style();
 
-    // Get caption text
-    QString capText = opt.text;
-    rx.setPattern(S_CAPTION(".+"));
-    if (rx.indexIn(capText) != -1)
-        capText = rx.cap(0);
-    else
-        capText = opt.text;
-    qDebug()<<capText;
+    // Get caption and pragraph
+    QString caption = index.data(CMD_CAPTION).toString();
+    QString paragraph = index.data(CMD_PARAGRAPH).toString();
 
-    // Make keyword highlight
-    QString text = opt.text;
-    if (!m_keyword.isEmpty())
+    // Make keyword in caption highlight
+    if (!caption.isEmpty() && !m_keyword.isEmpty())
     {
         QString search;
         foreach(QChar c, m_keyword)
             search += QString("(?:\\b(%1)[a-zA-Z]*\\b)").arg(c) + "(?:.*)";
         rx.setPattern(search);
-        if (rx.indexIn(capText) != -1)
+        if (rx.indexIn(caption) != -1)
         {
             for (int i = m_keyword.length(); i > 0; --i)
             {
@@ -70,20 +50,27 @@ void CmdItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
                 int len = rx.cap(i).length();
                 if (pos != -1)
                 {
-                    text.replace(pos, len, S_HIGHLIGHT(text.mid(pos, len)));
+                    caption.replace(pos, len, highlight(caption.mid(pos, len)));
                 }
             }
         }
         else
         {
-            text.replace(capText.indexOf(m_keyword, 0, Qt::CaseInsensitive),
-                         m_keyword.length(),
-                         S_HIGHLIGHT(text.mid(capText.indexOf(m_keyword, 0, Qt::CaseInsensitive), m_keyword.length())));
+            int pos = caption.indexOf(m_keyword, 0, Qt::CaseInsensitive);
+            caption.replace(pos, m_keyword.length(), highlight(caption.mid(pos, m_keyword.length())));
         }
     }
 
     // Set text
-    doc.setHtml(text);
+    if (!caption.isEmpty())
+    {
+        caption = "<h6>" + caption + "</h6>";
+    }
+    if(!paragraph.isEmpty())
+    {
+        paragraph = "<p>" + paragraph + "</p>";
+    }
+    doc.setHtml(caption + paragraph);
 
     // Painting item without text
     opt.text.clear();
@@ -110,7 +97,24 @@ QSize CmdItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
 
-    doc.setHtml(opt.text);
+    QString caption = index.data(CMD_CAPTION).toString();
+    QString paragraph = index.data(CMD_PARAGRAPH).toString();
+
+    if (!caption.isEmpty())
+    {
+        caption = "<h6>" + caption + "</h6>";
+    }
+    if(!paragraph.isEmpty())
+    {
+        paragraph = "<p>" + paragraph + "</p>";
+    }
+
+    doc.setHtml(caption + paragraph);
     doc.setTextWidth(opt.rect.width());
     return QSize(doc.idealWidth(), doc.size().height());
+}
+
+QString CmdItemDelegate::highlight(const QString &text) const
+{
+    return QString("<hl>%1</hl>").arg(text);
 }

@@ -8,6 +8,9 @@
 #define CMD_SUCCEED	1
 #define CMD_QUERY	2
 
+#define CMD_CAPTION	Qt::DisplayRole
+#define CMD_PARAGRAPH	Qt::UserRole + 1
+
 class CmdItem : public QStandardItem
 {
 public:

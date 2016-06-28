@@ -3,6 +3,7 @@
 #include "cmditemdelegate.h"
 #include <QApplication>
 #include <QSettings>
+#include <QDebug>
 
 Apps::Apps(const QString &text)  :
     CmdItem(text)
@@ -20,13 +21,14 @@ int Apps::exec()
             break;
         else
         {
-            QRegExp rx("/(\\w+)\\.exe", Qt::CaseInsensitive, QRegExp::RegExp);
-            if (rx.indexIn(process) != -1)
+            QRegExp rx("/(.+)\\.exe", Qt::CaseInsensitive, QRegExp::RegExp);
+            if (rx.lastIndexIn(process) != -1)
             {
-                m_resModel->setItem(i, new AppLauncher(S_CAPTION(rx.cap(1)) + S_PARAGRAPH(process)));
+                m_resModel->setItem(i, new AppLauncher(rx.cap(1)));
+                m_resModel->setData(m_resModel->index(i, 0), process, CMD_PARAGRAPH);
             }
             else
-                m_resModel->setItem(i, new AppLauncher(S_CAPTION(process)));
+                qDebug()<<process;
         }
     }
 
