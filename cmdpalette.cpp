@@ -46,8 +46,6 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     connect(ui->listView, &QListView::activated, this, &CmdPalette::cmdActivate);
     connect(this, &CmdPalette::keywordChanged, m_delegate, &CmdItemDelegate::keywordChanged);
     connect(this, &CmdPalette::keywordChanged, m_proxyModel, &CmdItemSortFilterProxyModel::keywordChanged);
-
-    activate();
 }
 
 CmdPalette::~CmdPalette()

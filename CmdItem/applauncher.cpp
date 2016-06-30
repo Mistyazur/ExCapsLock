@@ -16,6 +16,7 @@ bool AppLauncher::exec()
     if( Wow64DisableWow64FsRedirection(&OldValue) )
     {
         QString &path = data(CMD_PARAGRAPH).toString();
+        path = "\"" + path + "\"";
         if (!path.isEmpty())
             return QProcess::startDetached(path);
 
