@@ -37,6 +37,8 @@ bool Power::exec()
     case 3:
         ret = ::ExitWindowsEx(EWX_REBOOT, 0);
         break;
+    case 4:
+        ret = ::PostMessage(HWND_BROADCAST, WM_SYSCOMMAND, SC_MONITORPOWER, 2);
     }
 
     return ret;

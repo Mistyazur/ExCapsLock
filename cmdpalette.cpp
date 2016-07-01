@@ -31,7 +31,8 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     m_stdModel->setItem(1, new Power("Power: Hibernate", 1));
     m_stdModel->setItem(2, new Power("Power: Shut Down", 2));
     m_stdModel->setItem(3, new Power("Power: Restart", 3));
-    m_stdModel->setItem(4, new Apps("Run App"));
+    m_stdModel->setItem(4, new Power("Power: Monitor Off", 4));
+    m_stdModel->setItem(5, new Apps("Run App"));
 //    m_stdModel->setItem(0, new QStandardItem("Install My Extension"));
 //    m_stdModel->setItem(1, new QStandardItem("Extension: Install Extension"));
 //    m_stdModel->setItem(2, new QStandardItem("Extension: View"));
