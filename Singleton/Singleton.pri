@@ -1,2 +1,5 @@
-HEADERS += Singleton/callonce.h \
-        Singleton/singleton.h
+INCLUDEPATH += $$PWD
+DEPENDPATH += $$PWD
+
+HEADERS += $$PWD/callonce.h \
+        $$PWD/singleton.h

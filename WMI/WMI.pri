@@ -1,3 +1,6 @@
 QT += axcontainer
 
-HEADERS += WMI/wmi.h
+INCLUDEPATH += $$PWD
+DEPENDPATH += $$PWD
+
+HEADERS += $$PWD/wmi.h

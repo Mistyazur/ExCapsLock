@@ -43,11 +43,6 @@ FORMS    += cmd.ui
 
 LIBS += -lUser32 -lAdvapi32 -lPowrProf
 
-DEPENDPATH += Singleton \
-        WMI
-INCLUDEPATH += Singleton \
-        WMI
-
 include(Singleton/Singleton.pri)
 include(WMI/WMI.pri)
 
