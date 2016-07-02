@@ -3,7 +3,7 @@
 
 ShadowWidget::ShadowWidget(QWidget *parent) :
     QWidget(parent),
-    m_shadow(":/src/window_shadow.png")
+    m_shadow(":/resource/window_shadow.png")
 {
 }
 

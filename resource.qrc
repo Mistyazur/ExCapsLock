@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>src/window_shadow.png</file>
+        <file>resource/window_shadow.png</file>
     </qresource>
 </RCC>

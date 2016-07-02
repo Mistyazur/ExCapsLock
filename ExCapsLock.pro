@@ -52,4 +52,4 @@ include(Singleton/Singleton.pri)
 include(WMI/WMI.pri)
 
 RESOURCES += \
-    src.qrc
+    resource.qrc
