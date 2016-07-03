@@ -41,10 +41,14 @@ HEADERS  += \
 
 FORMS    += cmd.ui
 
+RESOURCES += \
+    resource.qrc
+
 LIBS += -lUser32 -lAdvapi32 -lPowrProf
 
 include(Singleton/Singleton.pri)
 include(WMI/WMI.pri)
 
-RESOURCES += \
-    resource.qrc
+win32 {
+QMAKE_LFLAGS += /MANIFESTUAC:\"level=\'requireAdministrator\' uiAccess=\'false\'\"
+}
