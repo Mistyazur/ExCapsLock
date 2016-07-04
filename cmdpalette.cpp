@@ -13,8 +13,10 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     ui(new Ui::Cmd)
 {
     // Set window attributes
-    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint/* | Qt::WindowStaysOnTopHint*/);
     setAttribute(Qt::WA_TranslucentBackground);
+    // Set window topmost (Qt::WindowStaysOnTopHint does not work when run as administrator)
+    ::SetWindowPos((HWND)winId(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
 
     // Set UI
     setFixedSize(600, 400);
@@ -58,11 +60,11 @@ void CmdPalette::activate()
 {
     if (!isVisible())
     {
-        // Show and activate this window. Function "activateWindow" doesn't work.
+        // Show
         show();
-        setWindowState(Qt::WindowNoState);
-        setWindowState(Qt::WindowActive);
-//        ::SetFocus((HWND)winId());
+
+        // Set Focus
+        ::SetFocus((HWND)winId());
     }
 }
 
