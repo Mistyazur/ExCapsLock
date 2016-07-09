@@ -46,6 +46,7 @@ RESOURCES += \
 
 LIBS += -lUser32 -lAdvapi32 -lPowrProf
 
+include(JSettings/JSettings.pri)
 include(Singleton/Singleton.pri)
 include(WMI/WMI.pri)
 
