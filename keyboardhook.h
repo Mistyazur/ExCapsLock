@@ -14,6 +14,8 @@ signals:
     void showCmd();
 
 public slots:
+
+private:
 };
 
 #endif // KEYBOARDHOOK_H

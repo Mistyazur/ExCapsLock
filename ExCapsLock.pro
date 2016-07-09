@@ -20,10 +20,10 @@ SOURCES += main.cpp \
     CmdItem/power.cpp \
     CmdItem/systemcmd.cpp \
     processretriever.cpp \
-    appdetector.cpp \
     CmdItem/applauncher.cpp \
     cmditemdelegate.cpp \
-    cmditemsortfilterproxymodel.cpp
+    cmditemsortfilterproxymodel.cpp \
+    appcapture.cpp
 
 HEADERS  += \
     keyboardhook.h \
@@ -34,10 +34,11 @@ HEADERS  += \
     CmdItem/power.h \
     CmdItem/systemcmd.h \
     processretriever.h \
-    appdetector.h \
     CmdItem/applauncher.h \
     cmditemdelegate.h \
-    cmditemsortfilterproxymodel.h
+    cmditemsortfilterproxymodel.h \
+    appcapture.h \
+    config.h
 
 FORMS    += cmd.ui
 

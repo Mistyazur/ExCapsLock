@@ -1,5 +1,4 @@
 #include "keyboardhook.h"
-#include "appdetector.h"
 #include <QApplication>
 #include <QSettings>
 #include <QProcess>
@@ -43,7 +42,6 @@ int main(int argc, char *argv[])
     }
 
     KeyboardHook kh;
-    AppDetector ad;
 
     return a.exec();
 }

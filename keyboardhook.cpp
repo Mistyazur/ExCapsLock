@@ -1,8 +1,10 @@
 #include "keyboardhook.h"
 #include "cmdpalette.h"
+#include "appcapture.h"
 #include <QDebug>
 
 CmdPalette *g_cmdPalette = nullptr;
+AppCapture *g_appCapture = nullptr;
 
 void KeyClick(WORD key)
 {
@@ -39,6 +41,9 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
             if (pKey->vkCode == VK_SPACE)
                 // Capslock + space: show command
                 g_cmdPalette->activate();
+            else if (pKey->vkCode == 'Q')
+                // Capslock +
+                g_appCapture->capture();
             else if (pKey->vkCode == 'W')
                 // Capslock + W: Up
                 KeyClick(VK_UP);
@@ -94,6 +99,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 KeyboardHook::KeyboardHook(QObject *parent) : QObject(parent)
 {
     g_cmdPalette = new CmdPalette();
+    g_appCapture = new AppCapture();
     HHOOK keyboardHook = ::SetWindowsHookEx(WH_KEYBOARD_LL,
                                             KbHookProc,
                                             ::GetModuleHandle(NULL),

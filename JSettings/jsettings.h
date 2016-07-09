@@ -2,7 +2,9 @@
 #define JSETTINGS_H
 
 #include <QSettings>
+#include <QIODevice>
 #include <QJsonDocument>
+
 
 bool readJsonFile(QIODevice &device, QSettings::SettingsMap &map)
 {
@@ -33,7 +35,7 @@ class JSettings : public QSettings
 {
 public:
     JSettings(Scope scope, const QString &organization, const QString &application = QString(), QObject *parent = Q_NULLPTR) :
-        QSettings(JsonFormat, QSettings::UserScope, organization, application, parent)
+        QSettings(JsonFormat, scope, organization, application, parent)
     {
 
     }
