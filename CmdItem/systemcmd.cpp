@@ -1,8 +1,8 @@
 #include "systemcmd.h"
 #include <QProcess>
 
-SystemCmd::SystemCmd(const QString &text, const QString &cmd) :
-    CmdItem(text),
+SystemCmd::SystemCmd(const QString &text, const QString &cmd, QObject *parent) :
+    CmdItem(text, parent),
     m_cmd(cmd)
 {
 }

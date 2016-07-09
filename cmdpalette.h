@@ -33,6 +33,7 @@ private:
     CmdItemSortFilterProxyModel *m_proxyModel;
     CmdItemDelegate *m_delegate;
 
+    void addItemToSourceModel(QStandardItem *item);
     void updateCmdView(QStandardItemModel *model);
 };
 

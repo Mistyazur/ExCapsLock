@@ -1,16 +1,16 @@
 #include "config.h"
-#include "appcapture.h"
+#include "appregister.h"
 #include "jsettings.h"
 #include <Windows.h>
 #include <Psapi.h>
 #include <QCoreApplication>
 #include <QFile>
-#include <QDebug>
-
+#include <QTimer>
 
 #define KEY_APP_PATH	"run.app.path"
 
-AppCapture::AppCapture(QObject *parent) : QObject(parent)
+AppRegister::AppRegister(const QString &text, QObject *parent) :
+    CmdItem(text, parent)
 {
     JSettings settings(USER_SETTINGS);
     m_processList = settings.value(KEY_APP_PATH).toStringList();
@@ -26,9 +26,17 @@ AppCapture::AppCapture(QObject *parent) : QObject(parent)
 
         Wow64RevertWow64FsRedirection(OldValue);
     }
+
+    emit updateApps(m_processList);
 }
 
-bool AppCapture::capture()
+bool AppRegister::exec()
+{
+    QTimer::singleShot(100, this, &AppRegister::capture);
+    return true;
+}
+
+bool AppRegister::capture()
 {
     bool bResult = false;
     HWND hWnd = ::GetForegroundWindow();
@@ -47,6 +55,7 @@ bool AppCapture::capture()
                 if (!m_processList.contains(process))
                 {
                     m_processList += process;
+                    emit updateApps(m_processList);
 
                     JSettings settings(USER_SETTINGS);
                     settings.remove(KEY_APP_PATH);
@@ -60,9 +69,4 @@ bool AppCapture::capture()
     }
 
     return bResult;
-}
-
-QStringList AppCapture::processList()
-{
-   return m_processList;
 }

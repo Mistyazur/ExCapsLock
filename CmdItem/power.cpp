@@ -2,8 +2,8 @@
 #include <windows.h>
 #include <PowrProf.h>
 
-Power::Power(const QString &text, int type) :
-    CmdItem(text),
+Power::Power(const QString &text, int type, QObject *parent) :
+    CmdItem(text, parent),
     m_type(type)
 {
     HANDLE           hToken;

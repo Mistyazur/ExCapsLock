@@ -4,13 +4,13 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 
-#define CMD_CAPTION	Qt::DisplayRole
+#define CMD_CAPTION		Qt::DisplayRole
 #define CMD_PARAGRAPH	Qt::UserRole + 1
 
-class CmdItem : public QStandardItem
+class CmdItem : public QStandardItem , public QObject
 {
 public:
-    CmdItem(const QString &text);
+    CmdItem(const QString &text, QObject *parent = nullptr);
     ~CmdItem();
     virtual bool exec() = 0;
     QStandardItemModel *resModel();

@@ -2,7 +2,8 @@
 #include "ui_cmd.h"
 #include "cmditem/systemcmd.h"
 #include "cmditem/power.h"
-#include "CmdItem/apps.h"
+#include "CmdItem/applister.h"
+#include "CmdItem/appregister.h"
 #include <QDebug>
 #include <QtMath>
 #include <QPainter>
@@ -27,18 +28,25 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     // Proxy model for list view
     m_proxyModel = new CmdItemSortFilterProxyModel(this);
 
+    // Create command
+    Power *powerSleep = new Power("Power: Sleep", 0, this);
+    Power *powerHibernate = new Power("Power: Hibernate", 1, this);
+    Power *powerShutDown = new Power("Power: Shut Down", 2, this);
+    Power *powerRestart = new Power("Power: Restart", 3, this);
+    Power *powerScreenSaver = new Power("Power: Screen Saver", 4, this);
+    AppLister *appRun = new AppLister("App: Run", this);
+    AppRegister *appNew = new AppRegister("App: New", this);
+    connect(appNew, &AppRegister::updateApps, appRun, &AppLister::updateApps);
+
     // Source model for list view
     m_stdModel = new QStandardItemModel(this);
-    m_stdModel->setItem(0, new Power("Power: Sleep", 0));
-    m_stdModel->setItem(1, new Power("Power: Hibernate", 1));
-    m_stdModel->setItem(2, new Power("Power: Shut Down", 2));
-    m_stdModel->setItem(3, new Power("Power: Restart", 3));
-    m_stdModel->setItem(4, new Power("Power: Save Screen", 4));
-    m_stdModel->setItem(5, new Apps("Run App"));
-//    m_stdModel->setItem(0, new QStandardItem("Install My Extension"));
-//    m_stdModel->setItem(1, new QStandardItem("Extension: Install Extension"));
-//    m_stdModel->setItem(2, new QStandardItem("Extension: View"));
-//    m_stdModel->setItem(3, new QStandardItem("Extension: email"));
+    addItemToSourceModel(powerSleep);
+    addItemToSourceModel(powerHibernate);
+    addItemToSourceModel(powerShutDown);
+    addItemToSourceModel(powerRestart);
+    addItemToSourceModel(powerScreenSaver);
+    addItemToSourceModel(appRun);
+    addItemToSourceModel(appNew);
     updateCmdView(m_stdModel);
 
     // Delegate for highlight input matches
@@ -133,6 +141,13 @@ void CmdPalette::keyPressEvent(QKeyEvent *event)
     {
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
     }
+}
+
+void CmdPalette::addItemToSourceModel(QStandardItem *item)
+{
+    static int index = 0;
+    m_stdModel->setItem(index, item);
+    ++index;
 }
 
 void CmdPalette::reset()

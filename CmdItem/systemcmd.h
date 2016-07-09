@@ -5,8 +5,9 @@
 
 class SystemCmd : public CmdItem
 {
+    Q_OBJECT
 public:
-    SystemCmd(const QString &text, const QString &cmd);
+    SystemCmd(const QString &text, const QString &cmd, QObject *parent = 0);
     bool exec();
 private:
     QString m_cmd;

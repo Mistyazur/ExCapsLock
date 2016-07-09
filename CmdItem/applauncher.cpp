@@ -4,8 +4,8 @@
 #include <Windows.h>
 
 
-AppLauncher::AppLauncher(const QString &text)  :
-    CmdItem(text)
+AppLauncher::AppLauncher(const QString &text, QObject *parent)  :
+    CmdItem(text, parent)
 {
 
 }

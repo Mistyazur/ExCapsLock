@@ -5,8 +5,9 @@
 
 class AppLauncher : public CmdItem
 {
+    Q_OBJECT
 public:
-    AppLauncher(const QString &text);
+    AppLauncher(const QString &text, QObject *parent = 0);
     bool exec();
 };
 

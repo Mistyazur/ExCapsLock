@@ -6,7 +6,7 @@
 #include <QJsonDocument>
 
 
-bool readJsonFile(QIODevice &device, QSettings::SettingsMap &map)
+static bool readJsonFile(QIODevice &device, QSettings::SettingsMap &map)
 {
     bool ret = false;
     QJsonParseError error;
@@ -18,7 +18,7 @@ bool readJsonFile(QIODevice &device, QSettings::SettingsMap &map)
     return ret;
 }
 
-bool writeJsonFile(QIODevice &device, const QSettings::SettingsMap &map)
+static bool writeJsonFile(QIODevice &device, const QSettings::SettingsMap &map)
 {
     bool ret = false;
 

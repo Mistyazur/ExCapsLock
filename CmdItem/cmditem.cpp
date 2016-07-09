@@ -1,7 +1,7 @@
 #include "cmditem.h"
 
-CmdItem::CmdItem(const QString &text) :
-    QStandardItem(text)
+CmdItem::CmdItem(const QString &text, QObject *parent) :
+    QStandardItem(text), QObject(parent)
 {
     m_resModel = new QStandardItemModel();
 }

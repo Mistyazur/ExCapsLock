@@ -15,7 +15,6 @@ SOURCES += main.cpp \
     keyboardhook.cpp \
     cmdpalette.cpp \
     shadowwidget.cpp \
-    CmdItem/apps.cpp \
     CmdItem/cmditem.cpp \
     CmdItem/power.cpp \
     CmdItem/systemcmd.cpp \
@@ -23,13 +22,13 @@ SOURCES += main.cpp \
     CmdItem/applauncher.cpp \
     cmditemdelegate.cpp \
     cmditemsortfilterproxymodel.cpp \
-    appcapture.cpp
+    CmdItem/appregister.cpp \
+    CmdItem/applister.cpp
 
 HEADERS  += \
     keyboardhook.h \
     cmdpalette.h \
     shadowwidget.h \
-    CmdItem/apps.h \
     CmdItem/cmditem.h \
     CmdItem/power.h \
     CmdItem/systemcmd.h \
@@ -37,8 +36,9 @@ HEADERS  += \
     CmdItem/applauncher.h \
     cmditemdelegate.h \
     cmditemsortfilterproxymodel.h \
-    appcapture.h \
-    config.h
+    config.h \
+    CmdItem/appregister.h \
+    CmdItem/applister.h
 
 FORMS    += cmd.ui
 
@@ -52,5 +52,5 @@ include(Singleton/Singleton.pri)
 include(WMI/WMI.pri)
 
 win32 {
-QMAKE_LFLAGS += /MANIFESTUAC:\"level=\'requireAdministrator\' uiAccess=\'false\'\"
+#QMAKE_LFLAGS += /MANIFESTUAC:\"level=\'requireAdministrator\' uiAccess=\'false\'\"
 }
