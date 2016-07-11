@@ -38,7 +38,8 @@ HEADERS  += \
     cmditemsortfilterproxymodel.h \
     config.h \
     CmdItem/appregister.h \
-    CmdItem/applister.h
+    CmdItem/applister.h \
+    keysequence.h
 
 FORMS    += cmd.ui
 

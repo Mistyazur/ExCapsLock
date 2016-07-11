@@ -1,0 +1,5 @@
+Todo:
+1. Switch windows
+2. Kill process
+
+Done:
