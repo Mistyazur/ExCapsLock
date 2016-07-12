@@ -6,11 +6,23 @@
 #include <QCoreApplication>
 #include <QFile>
 #include <QTimer>
+#include <QDebug>
 
 #define KEY_APP_PATH	"run.app.path"
 
 AppRegister::AppRegister(const QString &text, QObject *parent) :
     CmdItem(text, parent)
+{
+    QTimer::singleShot(100, this, &AppRegister::load);
+}
+
+bool AppRegister::exec()
+{
+    QTimer::singleShot(100, this, &AppRegister::capture);
+    return true;
+}
+
+void AppRegister::load()
 {
     JSettings settings(USER_SETTINGS);
     m_processList = settings.value(KEY_APP_PATH).toStringList();
@@ -28,12 +40,6 @@ AppRegister::AppRegister(const QString &text, QObject *parent) :
     }
 
     emit updateApps(m_processList);
-}
-
-bool AppRegister::exec()
-{
-    QTimer::singleShot(100, this, &AppRegister::capture);
-    return true;
 }
 
 bool AppRegister::capture()

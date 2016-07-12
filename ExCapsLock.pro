@@ -24,7 +24,8 @@ SOURCES += main.cpp \
     cmditemsortfilterproxymodel.cpp \
     CmdItem/appregister.cpp \
     CmdItem/applister.cpp \
-    CmdItem/proclister.cpp
+    CmdItem/proclister.cpp \
+    CmdItem/prockiller.cpp
 
 HEADERS  += \
     keyboardhook.h \
@@ -41,7 +42,8 @@ HEADERS  += \
     CmdItem/appregister.h \
     CmdItem/applister.h \
     keysequence.h \
-    CmdItem/proclister.h
+    CmdItem/proclister.h \
+    CmdItem/prockiller.h
 
 FORMS    += cmd.ui
 

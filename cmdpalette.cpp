@@ -58,8 +58,8 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &CmdPalette::textChanged);
     connect(ui->listView, &QListView::activated, this, &CmdPalette::cmdActivate);
-    connect(this, &CmdPalette::keywordChanged, m_delegate, &CmdItemDelegate::keywordChanged);
-    connect(this, &CmdPalette::keywordChanged, m_proxyModel, &CmdItemSortFilterProxyModel::keywordChanged);
+    connect(this, &CmdPalette::searchChanged, m_delegate, &CmdItemDelegate::searchChanged);
+    connect(this, &CmdPalette::searchChanged, m_proxyModel, &CmdItemSortFilterProxyModel::searchChanged);
 }
 
 CmdPalette::~CmdPalette()
@@ -97,7 +97,7 @@ void CmdPalette::textChanged()
     m_proxyModel->setFilterRegExp(regExp);
 
     // Set highlight and sort by keyword
-    emit keywordChanged(ui->lineEdit->text());
+    emit searchChanged(ui->lineEdit->text());
 
     // Update to make highlight effect
     ui->listView->update();

@@ -13,6 +13,7 @@ signals:
     void updateApps(const QStringList &apps);
 private:
     QStringList m_processList;
+    void load();
     bool capture();
 };
 

@@ -10,9 +10,9 @@ CmdItemSortFilterProxyModel::CmdItemSortFilterProxyModel(QObject *parent) :
 
 }
 
-void CmdItemSortFilterProxyModel::keywordChanged(QString keyword)
+void CmdItemSortFilterProxyModel::searchChanged(QString searchText)
 {
-    m_keyword = keyword;
+    m_serachText = searchText;
 }
 
 bool CmdItemSortFilterProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
@@ -40,17 +40,17 @@ int CmdItemSortFilterProxyModel::matchType(const QString &text) const
     int nRet = MATCH_NONE;
 
     QRegExp rx("", Qt::CaseInsensitive, QRegExp::RegExp);
-    if (!m_keyword.isEmpty())
+    if (!m_serachText.isEmpty())
     {
         QString search;
-        foreach(QChar c, m_keyword)
+        foreach(QChar c, m_serachText)
             search += QString("\\b%1[a-zA-Z]*\\b").arg(c) + ".*";
         rx.setPattern(search);
         if (rx.indexIn(text) != -1)
         {
             nRet = MATCH_INITIAL;
         }
-        else if (text.indexOf(m_keyword, 0, Qt::CaseInsensitive) != -1)
+        else if (text.indexOf(m_serachText, 0, Qt::CaseInsensitive) != -1)
         {
             nRet = MATCH_CONTAINS;
         }

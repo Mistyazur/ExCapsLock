@@ -7,8 +7,11 @@ class AppLauncher : public CmdItem
 {
     Q_OBJECT
 public:
-    AppLauncher(const QString &text, QObject *parent = 0);
+    AppLauncher(const QString &text, const QString &path, QObject *parent = 0);
     bool exec();
+    const QString html(const QString &searchKeyword);
+private:
+    QString m_path;
 };
 
 #endif // APPLAUNCHER_H

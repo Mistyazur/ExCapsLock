@@ -10,18 +10,12 @@ class CmdItemDelegate : public QStyledItemDelegate
 public:
     CmdItemDelegate(QObject *parent = 0);
 public slots:
-    void keywordChanged(QString keyword);
+    void searchChanged(QString searchText);
 protected:
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
 private:
-    QString m_keyword;
-
-    QString highlight(const QString &text) const;
+    QString m_searchText;
 };
-
-#define S_CAPTION(t)	CmdItemDelegate::caption(t)
-#define S_PARAGRAPH(t)	CmdItemDelegate::paragraph(t)
-#define S_HIGHLIGHT(t)	CmdItemDelegate::highlight(t)
 
 #endif // CMDITEMDELEGATE_H

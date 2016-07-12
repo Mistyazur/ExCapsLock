@@ -1,7 +1,7 @@
 #include "applister.h"
 #include "applauncher.h"
 #include "cmditemdelegate.h"
-
+#include <QDebug>
 
 AppLister::AppLister(const QString &text, QObject *parent) :
     CmdItem(text, parent)
@@ -17,10 +17,7 @@ bool AppLister::exec()
         {
             QRegExp rx("/(.+)\\.exe", Qt::CaseInsensitive, QRegExp::RegExp);
             if (rx.lastIndexIn(app) != -1)
-            {
-                m_resModel->setItem(index, new AppLauncher(rx.cap(1)));
-                m_resModel->setData(m_resModel->index(index, 0), app, CMD_PARAGRAPH);
-            }
+                m_resModel->setItem(index, new AppLauncher(rx.cap(1), app));
         }
     }
 

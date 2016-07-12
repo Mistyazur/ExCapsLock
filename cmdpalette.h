@@ -21,7 +21,7 @@ public:
     void activate();
     void reset();
 signals:
-    void keywordChanged(QString keyword);
+    void searchChanged(QString searchText);
 public slots:
     void textChanged();
     void cmdActivate(const QModelIndex &index);
