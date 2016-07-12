@@ -8,31 +8,40 @@ class UniqueList : public QList<T>
 {
 public:
     inline UniqueList() : QList<T>() {}
-    inline UniqueList(const QList<T> &other) : QList<T>(other) {}
+    inline UniqueList(const UniqueList<T> &other) : QList<T>(other) {}
     inline UniqueList(const UniqueList<T> &&other) : QList<T>(other) {}
     inline UniqueList(std::initializer_list<T> args) : QList<T>(args) {}
-    inline bool contains(const UniqueList<T> &other) const
+    inline UniqueList<T> operator+(const UniqueList<T> &other) const
     {
-        if (other.isEmpty())
-            return true;
-
-        for (int pos = 0; pos < size(); ++pos)
-        {
-            if ((pos = indexOf(other.first(), pos)) == -1)
-                break;
-
-            if (mid(pos, other.length()) == other)
-                return true;
+        UniqueList<T> result(*this);
+        for (auto i : other) {
+            if (!result.contains(i))
+                result.append(i);
         }
-
-        return false;
-
+        return result;
     }
-
-//	inline UniqueList<T> operator+(const UniqueList<T> &other) const;
-//    inline UniqueList<T> & operator+=(const UniqueList<T> &other);
-//    inline UniqueList<T> & operator+=(const T &value);
+    inline UniqueList<T> & operator+=(const UniqueList<T> &other)
+    {
+        for (auto i : other) {
+            if (!this->contains(i))
+                this->append(i);
+        }
+        return *this;
+    }
+    inline UniqueList<T> & operator+=(const T &value)
+    {
+        if (!this->contains(value))
+            this->append(value);
+        return *this;
+    }
+    inline UniqueList<T> & operator-=(const T &value)
+    {
+        this->removeOne(value);
+        return *this;
+    }
 };
 
 typedef UniqueList<ulong> KeySequence;
+typedef QSet<ulong> KeyModifier;
+
 #endif // KEYSEQUENCE_H
