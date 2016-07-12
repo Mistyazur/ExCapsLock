@@ -4,6 +4,7 @@
 #include "cmditem/power.h"
 #include "CmdItem/applister.h"
 #include "CmdItem/appregister.h"
+#include "CmdItem/proclister.h"
 #include <QDebug>
 #include <QtMath>
 #include <QPainter>
@@ -34,9 +35,10 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     Power *powerShutDown = new Power("Power: Shut Down", 2, this);
     Power *powerRestart = new Power("Power: Restart", 3, this);
     Power *powerScreenSaver = new Power("Power: Screen Saver", 4, this);
-    AppLister *appRun = new AppLister("App: Run", this);
+    AppLister *appList = new AppLister("App: Run", this);
     AppRegister *appNew = new AppRegister("App: New", this);
-    connect(appNew, &AppRegister::updateApps, appRun, &AppLister::updateApps);
+    ProcLister *procList = new ProcLister("Process: Kill", this);
+    connect(appNew, &AppRegister::updateApps, appList, &AppLister::updateApps);
 
     // Source model for list view
     m_stdModel = new QStandardItemModel(this);
@@ -45,8 +47,9 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     addItemToSourceModel(powerShutDown);
     addItemToSourceModel(powerRestart);
     addItemToSourceModel(powerScreenSaver);
-    addItemToSourceModel(appRun);
+    addItemToSourceModel(appList);
     addItemToSourceModel(appNew);
+    addItemToSourceModel(procList);
     updateCmdView(m_stdModel);
 
     // Delegate for highlight input matches

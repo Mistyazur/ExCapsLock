@@ -3,7 +3,7 @@
 #include "cmditemdelegate.h"
 
 
-AppLister::AppLister(const QString &text, QObject *parent)  :
+AppLister::AppLister(const QString &text, QObject *parent) :
     CmdItem(text, parent)
 {
 }
