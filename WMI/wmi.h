@@ -14,7 +14,7 @@ public:
         CoInitializeEx(0, COINIT_MULTITHREADED);
     }
 
-    void get(const QString &query, const QString &property, QVariantList &vList)
+    void get(const QString &query, const QStringList &properties, QList<QVariantList> &vList)
     {
         static VARIANT *theItem = new VARIANT;
         static QAxObject *objIWbemLocator = new QAxObject("WbemScripting.SWbemLocator");
@@ -31,7 +31,11 @@ public:
             if (enumInterface->Next(1, theItem, NULL) != S_FALSE)
             {
                 QAxObject item((IUnknown *)theItem->punkVal);
-                vList += item.dynamicCall(property.toLatin1().data());
+                QVariantList vl;
+                foreach(QString property, properties) {
+                    vl += item.dynamicCall(property.toLatin1().data());
+                }
+                vList += vl;
             }
         }
     }

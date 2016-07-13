@@ -37,22 +37,22 @@ ProcessRetriever::ProcessRetriever(QObject *parent) :
 
 void ProcessRetriever::timerEvent(QTimerEvent *)
 {
-    QSettings settings(qApp->applicationDirPath() + "/ExCapsLock.ini", QSettings::IniFormat);
-    QVariantList vlProcess;
-    WmiInstance.get("SELECT * FROM Win32_Process WHERE (ExecutablePath IS NOT NULL)", "ExecutablePath", vlProcess);
-    foreach (QVariant v, vlProcess)
-    {
-        if (v.isValid())
-        {
-            QString &process = v.toString();
-            process.replace("\\", "/");
-            if (!process.startsWith("c:/windows", Qt::CaseInsensitive) && !m_processList.contains(process))
-                m_processList += process;
-        }
-    }
-    settings.remove("Apps");
-    for (int i = 0; i < m_processList.count(); ++i)
-    {
-        settings.setValue(QString("Apps/path%1").arg(i), m_processList.at(i));
-    }
+//    QSettings settings(qApp->applicationDirPath() + "/ExCapsLock.ini", QSettings::IniFormat);
+//    QVariantList vlProcess;
+//    WmiInstance.get("SELECT * FROM Win32_Process WHERE (ExecutablePath IS NOT NULL)", "ExecutablePath", vlProcess);
+//    foreach (QVariant v, vlProcess)
+//    {
+//        if (v.isValid())
+//        {
+//            QString &process = v.toString();
+//            process.replace("\\", "/");
+//            if (!process.startsWith("c:/windows", Qt::CaseInsensitive) && !m_processList.contains(process))
+//                m_processList += process;
+//        }
+//    }
+//    settings.remove("Apps");
+//    for (int i = 0; i < m_processList.count(); ++i)
+//    {
+//        settings.setValue(QString("Apps/path%1").arg(i), m_processList.at(i));
+//    }
 }
