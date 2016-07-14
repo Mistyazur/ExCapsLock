@@ -4,76 +4,10 @@
 #include <TlHelp32.h>
 #include <Psapi.h>
 #include <QProcess>
+#include <QHash>
 #include <QDebug>
 
-DWORD GetProcessUseMemory(DWORD dwProcID)
-{
-    HANDLE hProcess = OpenProcess(
-                PROCESS_QUERY_INFORMATION |
-                PROCESS_VM_READ,
-                FALSE, dwProcID );
-    PERFORMANCE_INFORMATION performanceInfo;
-    memset(&performanceInfo, 0, sizeof(performanceInfo));
-    if(!::GetPerformanceInfo(&performanceInfo, sizeof(performanceInfo)))
-        return 0;
 
-    DWORD pageSize = performanceInfo.PageSize;
-
-    BOOL bRet = TRUE;
-    PSAPI_WORKING_SET_INFORMATION workSetInfo;
-    PBYTE pByte = NULL;
-    PSAPI_WORKING_SET_BLOCK *pWorkSetBlock = workSetInfo.WorkingSetInfo;
-    memset(&workSetInfo, 0, sizeof(workSetInfo));
-    // 要求操作进程的权限：PROCESS_QUERY_INFORMATION and PROCESS_VM_READ
-    // 第一次调用获取实际缓冲区大小
-    bRet = ::QueryWorkingSet(hProcess, &workSetInfo, sizeof(workSetInfo));
-    if(!bRet) // 调用失败
-    {
-        if(GetLastError() == ERROR_BAD_LENGTH) // 需要重新分配缓冲区
-        {
-            DWORD realSize = sizeof(workSetInfo.NumberOfEntries)
-                    + workSetInfo.NumberOfEntries*sizeof(PSAPI_WORKING_SET_BLOCK);
-//            try
-            {
-                pByte = new BYTE[realSize];
-                memset(pByte, 0, realSize);
-                pWorkSetBlock = (PSAPI_WORKING_SET_BLOCK *)(pByte + sizeof(workSetInfo.NumberOfEntries));
-                // 重新获取
-                if(!::QueryWorkingSet(hProcess, pByte, realSize))
-                {
-                    delete[] pByte; // 清理内存
-                    CloseHandle(hProcess);
-                    return 0;
-                }
-            }
-//            catch(CMemoryException *e) // 分配内存失败
-//            {
-//                e->Delete();
-//                CloseHandle(hProcess);
-//                return 0;
-//            }
-
-        }
-        else // 其它错误，认为获取失败
-        {
-            CloseHandle(hProcess);
-            return 0;
-        }
-    }
-    SIZE_T workSetPrivate = 0;
-    for (ULONG_PTR i = 0; i < workSetInfo.NumberOfEntries; ++i)
-    {
-        if(!pWorkSetBlock[i].Shared) // 如果不是共享页
-            workSetPrivate += pageSize;
-    }
-
-    if(pByte)
-        delete[] pByte;
-
-    CloseHandle(hProcess);
-
-    return workSetPrivate;
-}
 
 ProcLister::ProcLister(const QString &text, QObject *parent) :
     CmdItem(text, parent)
@@ -119,48 +53,126 @@ void ProcLister::timerEvent(QTimerEvent *)
 
     if (::Process32First(hProcessSnap, &pe32))
     {
-        QHash<int, ProcessCpu *> processCpuHash;
-
+        int index = 0;
         do {
+
+            // Open process to query infomation.
+
             HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-                                          FALSE, pe32.th32ProcessID);
+                                            FALSE, pe32.th32ProcessID);
             if (NULL != hProcess) {
 
-                // Get count of cpu.
-
-                static int nProcessor = -1;
-
-                if(nProcessor == -1) {
-                    SYSTEM_INFO info;
-                    GetSystemInfo(&info);
-                    nProcessor = info.dwNumberOfProcessors;
-                }
-
-                // Get cpu.
-                ProcessCpu *pc = nullptr;
-                if (m_processCpuHash.contains(pe32.th32ProcessID)) {
-                    pc = m_processCpuHash.take(pe32.th32ProcessID);
-                } else {
-                    pc = new ProcessCpu(nProcessor);
-                }
-
-                processCpuHash.insert(pe32.th32ProcessID, pc);
-                if (pe32.th32ProcessID == 26040)
-                qDebug()<<QString::fromWCharArray(pe32.szExeFile)<<pc->cpu(hProcess, timeDelta);
-
-                // Release the handle to the process.
+                QString &caption = QString::fromWCharArray(pe32.szExeFile);
+                QStringList params;
+                params += QString::number(pe32.th32ProcessID);
+                params += QString::number(cpuUsage(hProcess, pe32.th32ProcessID, timeDelta));
+                params += QString::number(memoryUsage(hProcess)/1024) + " K";
+                m_resModel->setItem(index++, new ProcKiller(caption, params));
 
                 ::CloseHandle(hProcess);
             }
 
         } while (::Process32Next(hProcessSnap, &pe32));
-
-        // Reset hash
-        for(auto i : m_processCpuHash) {
-            delete i;
-        }
-        m_processCpuHash = processCpuHash;
     }
 
     ::CloseHandle(hProcessSnap);
+}
+
+LONG ProcLister::cpuUsage(HANDLE hProcess, LONG pid, LONGLONG timeDelta)
+{
+    LONG nCpu = -1;
+
+    // Get count of cpu.
+
+    static int nProcessor = -1;
+
+    if(nProcessor == -1) {
+        SYSTEM_INFO info;
+        ::GetSystemInfo(&info);
+        nProcessor = info.dwNumberOfProcessors;
+    }
+
+    // Get previous cpu time of the specified process
+
+    static QHash<LONG, LONGLONG> prevCpuTimeHash = QHash<LONG, LONGLONG>();
+    LONGLONG prevCpuTime;
+
+    if (prevCpuTimeHash.contains(pid)) {
+        prevCpuTime = prevCpuTimeHash.take(pid);
+    } else {
+        prevCpuTime = 0;
+    }
+
+    // Get cpu time of process.
+
+    FILETIME creationTime;
+    FILETIME exitTime;
+    FILETIME kernelTime;
+    FILETIME userTime;
+    LONGLONG cpuTime;
+    LONGLONG cpuTimeDelta;
+
+    if (!::GetProcessTimes(hProcess, &creationTime, &exitTime, &kernelTime, &userTime)) {
+        // We don't assert here because in some cases (such as in the Task Manager)
+        // we may call this function on a process that has just exited but we have
+        // not yet received the notification.
+        return -1;
+    }
+
+    cpuTime = (((PLARGE_INTEGER)(&kernelTime))->QuadPart + ((PLARGE_INTEGER)(&userTime))->QuadPart) / nProcessor;
+
+    if (prevCpuTime == 0) {
+        nCpu = -1;
+    } else {
+        cpuTimeDelta = cpuTime - prevCpuTime;
+        nCpu = ((cpuTimeDelta * 100 + timeDelta / 2) / timeDelta);
+    }
+
+    // Save as previous cpu time
+
+    prevCpuTime = cpuTime;
+    prevCpuTimeHash.insert(pid, prevCpuTime);
+
+    return nCpu;
+}
+
+LONGLONG ProcLister::memoryUsage(HANDLE hProcess)
+{
+    LONGLONG workSetPrivate = 0;
+    PBYTE pByte = NULL;
+
+    PERFORMANCE_INFORMATION performanceInfo = {};
+    if(!::GetPerformanceInfo(&performanceInfo, sizeof(performanceInfo)))
+        return 0;
+
+    PSAPI_WORKING_SET_INFORMATION workSetInfo = {};
+    PSAPI_WORKING_SET_BLOCK *pWorkSetBlock = workSetInfo.WorkingSetInfo;
+    if(!::QueryWorkingSet(hProcess, &workSetInfo, sizeof(PSAPI_WORKING_SET_INFORMATION))) {
+        if(GetLastError() == ERROR_BAD_LENGTH) {
+            DWORD requiredSize = sizeof(workSetInfo.NumberOfEntries) + workSetInfo.NumberOfEntries*sizeof(PSAPI_WORKING_SET_BLOCK);
+            pByte = new BYTE[requiredSize]{0};
+            pWorkSetBlock = (PSAPI_WORKING_SET_BLOCK *)(pByte + sizeof(workSetInfo.NumberOfEntries));
+            if(!::QueryWorkingSet(hProcess, pByte, requiredSize))
+            {
+                goto CLEAN;
+            }
+        }
+        else
+        {
+            goto CLEAN;
+        }
+    }
+
+    for (ULONG_PTR i = 0; i < workSetInfo.NumberOfEntries; ++i)
+    {
+        if(!pWorkSetBlock[i].Shared)
+            workSetPrivate += performanceInfo.PageSize;
+    }
+
+    CLEAN:
+    if (pByte)
+        delete[] pByte;
+    CloseHandle(hProcess);
+
+    return workSetPrivate;
 }
