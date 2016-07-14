@@ -5,112 +5,74 @@
 #include <Psapi.h>
 #include <QProcess>
 #include <QDebug>
-#include "WMI/wmi.h"
 
-
-#include <psapi.h>
-
-
-/// 时间转换
-static uint64_t file_time_2_utc(const FILETIME* ftime)
+DWORD GetProcessUseMemory(DWORD dwProcID)
 {
-    LARGE_INTEGER li;
-
-    assert(ftime);
-    li.LowPart = ftime->dwLowDateTime;
-    li.HighPart = ftime->dwHighDateTime;
-    return li.QuadPart;
-}
-
-
-/// 获得CPU的核数
-static int get_processor_number()
-{
-    SYSTEM_INFO info;
-    GetSystemInfo(&info);
-    return (int)info.dwNumberOfProcessors;
-}
-
-
-
-
-int get_cpu_usage()
-{
-    //cpu数量
-    static int processor_count_ = -1;
-    //上一次的时间
-    static int64_t last_time_ = 0;
-    static int64_t last_system_time_ = 0;
-
-
-    FILETIME now;
-    FILETIME creation_time;
-    FILETIME exit_time;
-    FILETIME kernel_time;
-    FILETIME user_time;
-    int64_t system_time;
-    int64_t time;
-    int64_t system_time_delta;
-    int64_t time_delta;
-
-    int cpu = -1;
-
-
-    if(processor_count_ == -1)
-    {
-        processor_count_ = get_processor_number();
-    }
-
-    GetSystemTimeAsFileTime(&now);
-
-    HANDLE h = ::OpenProcess(PROCESS_QUERY_INFORMATION, false, 14360);
-    if (!GetProcessTimes(h, &creation_time, &exit_time,
-        &kernel_time, &user_time))
-    {
-        // We don't assert here because in some cases (such as in the Task Manager)
-        // we may call this function on a process that has just exited but we have
-        // not yet received the notification.
-        return -1;
-    }
-    ::CloseHandle(h);
-    system_time = (file_time_2_utc(&kernel_time) + file_time_2_utc(&user_time)) / processor_count_;
-    time = file_time_2_utc(&now);
-
-    if ((last_system_time_ == 0) || (last_time_ == 0))
-    {
-        // First call, just set the last values.
-        last_system_time_ = system_time;
-        last_time_ = time;
-        return -1;
-    }
-
-    system_time_delta = system_time - last_system_time_;
-    time_delta = time - last_time_;
-
-    assert(time_delta != 0);
-
-    if (time_delta == 0)
-        return -1;
-
-    // We add time_delta / 2 so the result is rounded.
-    cpu = (int)((system_time_delta * 100 + time_delta / 2) / time_delta);
-    last_system_time_ = system_time;
-    last_time_ = time;
-    return cpu;
-}
-
-
-
-int get_memory_usage(uint64_t* mem, uint64_t* vmem)
-{
-    PROCESS_MEMORY_COUNTERS pmc;
-    if(GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
-    {
-        if(mem) *mem = pmc.WorkingSetSize;
-        if(vmem) *vmem = pmc.PagefileUsage;
+    HANDLE hProcess = OpenProcess(
+                PROCESS_QUERY_INFORMATION |
+                PROCESS_VM_READ,
+                FALSE, dwProcID );
+    PERFORMANCE_INFORMATION performanceInfo;
+    memset(&performanceInfo, 0, sizeof(performanceInfo));
+    if(!::GetPerformanceInfo(&performanceInfo, sizeof(performanceInfo)))
         return 0;
+
+    DWORD pageSize = performanceInfo.PageSize;
+
+    BOOL bRet = TRUE;
+    PSAPI_WORKING_SET_INFORMATION workSetInfo;
+    PBYTE pByte = NULL;
+    PSAPI_WORKING_SET_BLOCK *pWorkSetBlock = workSetInfo.WorkingSetInfo;
+    memset(&workSetInfo, 0, sizeof(workSetInfo));
+    // 要求操作进程的权限：PROCESS_QUERY_INFORMATION and PROCESS_VM_READ
+    // 第一次调用获取实际缓冲区大小
+    bRet = ::QueryWorkingSet(hProcess, &workSetInfo, sizeof(workSetInfo));
+    if(!bRet) // 调用失败
+    {
+        if(GetLastError() == ERROR_BAD_LENGTH) // 需要重新分配缓冲区
+        {
+            DWORD realSize = sizeof(workSetInfo.NumberOfEntries)
+                    + workSetInfo.NumberOfEntries*sizeof(PSAPI_WORKING_SET_BLOCK);
+//            try
+            {
+                pByte = new BYTE[realSize];
+                memset(pByte, 0, realSize);
+                pWorkSetBlock = (PSAPI_WORKING_SET_BLOCK *)(pByte + sizeof(workSetInfo.NumberOfEntries));
+                // 重新获取
+                if(!::QueryWorkingSet(hProcess, pByte, realSize))
+                {
+                    delete[] pByte; // 清理内存
+                    CloseHandle(hProcess);
+                    return 0;
+                }
+            }
+//            catch(CMemoryException *e) // 分配内存失败
+//            {
+//                e->Delete();
+//                CloseHandle(hProcess);
+//                return 0;
+//            }
+
+        }
+        else // 其它错误，认为获取失败
+        {
+            CloseHandle(hProcess);
+            return 0;
+        }
     }
-    return -1;
+    SIZE_T workSetPrivate = 0;
+    for (ULONG_PTR i = 0; i < workSetInfo.NumberOfEntries; ++i)
+    {
+        if(!pWorkSetBlock[i].Shared) // 如果不是共享页
+            workSetPrivate += pageSize;
+    }
+
+    if(pByte)
+        delete[] pByte;
+
+    CloseHandle(hProcess);
+
+    return workSetPrivate;
 }
 
 ProcLister::ProcLister(const QString &text, QObject *parent) :
@@ -121,67 +83,84 @@ ProcLister::ProcLister(const QString &text, QObject *parent) :
 
 bool ProcLister::exec()
 {
-//    HANDLE hProcessSnap;
-//    PROCESSENTRY32 pe32 = {sizeof(pe32), };
-
-//    // Take a snapshot of all processes in the system.
-//    hProcessSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-//    if (INVALID_HANDLE_VALUE == hProcessSnap)
-//        return NULL;
-
-//    // Retrieve information about the first process,
-//    // and exit if unsuccessful
-//    if (::Process32First(hProcessSnap, &pe32))
-//    {
-//        int index = 0;
-//        do {
-//            QString &caption = QString::fromWCharArray(pe32.szExeFile);
-//            QStringList params;
-//            params += QString::number(pe32.th32ProcessID);
-
-////            // Get other params
-////            HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION, false, pe32.th32ProcessID);
-////            if (hProcess) {
-////                // Get memory usage
-////                PROCESS_MEMORY_COUNTERS procMem;
-////                ::GetProcessMemoryInfo(hProcess, &procMem, sizeof(PROCESS_MEMORY_COUNTERS));
-////                params += QString::number(procMem.WorkingSetSize/1024);
-////                qDebug()<<params;
-////                ::CloseHandle(hProcess);
-////            }
-
-//            m_resModel->setItem(index, new ProcKiller(caption, params));
-//            ++index;
-//        } while (::Process32Next(hProcessSnap, &pe32));
-//    }
-
-//    ::CloseHandle(hProcessSnap);
-
-//    QRegExp rx("(\\r\\n)+", Qt::CaseInsensitive, QRegExp::RegExp);
-//    QProcess p;
-//    p.start("TASKLIST /NH /FO CSV", QIODevice::ReadOnly);
-//    p.waitForFinished();
-//    QString processesInfo(p.readAllStandardOutput());
-//    processesInfo.
-//    QStringList processesInfoList = processesInfo.split(rx, QString::SkipEmptyParts);
-//    qDebug()<<processesInfoList.count();
-//    return true;
-//    for (int i = 0; i < processesInfoList.count(); ++i) {
-//        QString processInfo = processesInfoList.at(i);
-//        rx.setPattern("^[^:]+:\\s+|\\r\\n[^:]+:\\s+");
-//        QStringList processInfoList = processInfo.split(rx, QString::SkipEmptyParts);
-//        if (processInfoList.at(2).trimmed() != "Services") {
-
-//            qDebug()<<processInfoList;
-//        }
-//    }
-
-//    QList<QVariantList> vlProcessInfo;
-//    WmiInstance.get("SELECT * FROM Win32_Process WHERE (SessionId != '0')", QStringList({"Name","WorkingSetSize"}), vlProcessInfo);
-//    qDebug()<<vlProcessInfo;
-    QList<QVariantList> vlProcessInfo;
-    WmiInstance.get("SELECT * FROM Win32_PerfRawData_PerfProc_Process", QStringList({"Name", "IDProcess", "PercentUserTime", "WorkingSetPrivate"}), vlProcessInfo);
-    qDebug()<<vlProcessInfo;
-
+    timerEvent(nullptr);
+    startTimer(1000);
     return true;
+}
+
+void ProcLister::timerEvent(QTimerEvent *)
+{
+    // Get time past since last time
+
+    static LONGLONG prevTime = 0;
+    LONGLONG currTime;
+    LONGLONG timeDelta;
+    FILETIME tNow;
+
+    ::GetSystemTimeAsFileTime(&tNow);
+    currTime = ((PLARGE_INTEGER)(&tNow))->QuadPart;
+
+    if (prevTime == 0)
+        timeDelta = 0;
+    else
+        timeDelta = currTime - prevTime;
+
+    prevTime = currTime;
+
+    // Take a snapshot of all processes in the system.
+
+    HANDLE hProcessSnap;
+    PROCESSENTRY32 pe32 = { };
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+
+    hProcessSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (INVALID_HANDLE_VALUE == hProcessSnap)
+        return;
+
+    if (::Process32First(hProcessSnap, &pe32))
+    {
+        QHash<int, ProcessCpu *> processCpuHash;
+
+        do {
+            HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+                                          FALSE, pe32.th32ProcessID);
+            if (NULL != hProcess) {
+
+                // Get count of cpu.
+
+                static int nProcessor = -1;
+
+                if(nProcessor == -1) {
+                    SYSTEM_INFO info;
+                    GetSystemInfo(&info);
+                    nProcessor = info.dwNumberOfProcessors;
+                }
+
+                // Get cpu.
+                ProcessCpu *pc = nullptr;
+                if (m_processCpuHash.contains(pe32.th32ProcessID)) {
+                    pc = m_processCpuHash.take(pe32.th32ProcessID);
+                } else {
+                    pc = new ProcessCpu(nProcessor);
+                }
+
+                processCpuHash.insert(pe32.th32ProcessID, pc);
+                if (pe32.th32ProcessID == 26040)
+                qDebug()<<QString::fromWCharArray(pe32.szExeFile)<<pc->cpu(hProcess, timeDelta);
+
+                // Release the handle to the process.
+
+                ::CloseHandle(hProcess);
+            }
+
+        } while (::Process32Next(hProcessSnap, &pe32));
+
+        // Reset hash
+        for(auto i : m_processCpuHash) {
+            delete i;
+        }
+        m_processCpuHash = processCpuHash;
+    }
+
+    ::CloseHandle(hProcessSnap);
 }
