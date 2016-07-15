@@ -37,7 +37,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
     static KeySequence keySeq = {};
     static uint nKeySeq = 0;
-    static QTime tCLHold;
+    static QTime tCLHold = QTime();
     PKBDLLHOOKSTRUCT pKey = (PKBDLLHOOKSTRUCT)lParam;
 
 //    qDebug()<<"KEY:"<<wParam<<pKey->vkCode<<(pKey->flags & LLKHF_INJECTED);
@@ -51,7 +51,8 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     }
 
     // Modifier
-    if (keySeq.isEmpty()) {
+    if (keySeq.isEmpty())
+    {
         if ((pKey->vkCode == VK_LWIN)
                 || (pKey->vkCode == VK_RWIN)
                 || (pKey->vkCode == VK_LMENU)
@@ -63,10 +64,16 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
             return CallNextHookEx(NULL, nCode, wParam, lParam);
     }
 
-    if (wParam == WM_KEYDOWN) {
+    if (wParam == WM_KEYDOWN)
+    {
         // Caps Lock hold down
-        if ((pKey->vkCode == VK_CAPITAL) && keySeq.isEmpty())
-            tCLHold.isValid() ? tCLHold.restart() : tCLHold.start();
+        if (keySeq.isEmpty())
+        {
+            if ((pKey->vkCode == VK_CAPITAL))
+            {
+                tCLHold.isValid() ? tCLHold.restart() : tCLHold.start();
+            }
+        }
 
         // Add to key sequence
         keySeq += pKey->vkCode;
@@ -81,15 +88,27 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
             KeyDown(VK_LEFT);
         else if (keySeq == KeySequence({VK_CAPITAL, 'D'}))
             KeyDown(VK_RIGHT);
-    } else if (wParam == WM_KEYUP) {
+    }
+    else if (wParam == WM_KEYUP)
+    {
         // Caps Lock release
-        if ((nKeySeq == 1) && (keySeq == KeySequence({VK_CAPITAL}))) {
+        if ((nKeySeq == 1) && (keySeq == KeySequence({VK_CAPITAL})))
+        {
+            // Esc simulation when Caps Lock hold less than 200 msec
+            // Enter simulation when Caps Lock hold more than 200 msec
             if (tCLHold.elapsed() < 200)
-                // Esc simulation when Caps Lock hold less than 200 msec
                 KeyPress(VK_ESCAPE);
             else
-                // Enter simulation when Caps Lock hold more than 200 msec
                 KeyPress(VK_RETURN);
+        }
+
+        // Esc
+        qDebug()<<keySeq<<keySeq.startsWith(VK_ESCAPE);
+        if (keySeq.startsWith(VK_ESCAPE))
+        {
+            // Reset command
+            if (g_cmdPalette->isVisible())
+                g_cmdPalette->reset();
         }
 
         // Trigger

@@ -9,9 +9,13 @@ class CmdItem : public QStandardItem , public QObject
 public:
     CmdItem(const QString &text, QObject *parent = nullptr);
     ~CmdItem();
+
     virtual bool exec() = 0;
     virtual const QString html(const QString &searchKeyword);
+
     QStandardItemModel *resModel();
+public slots:
+    virtual void reset();
 protected:
     QStandardItemModel *m_resModel;
 

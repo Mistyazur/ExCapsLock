@@ -21,6 +21,11 @@ QStandardItemModel *CmdItem::resModel()
     return m_resModel;
 }
 
+void CmdItem::reset()
+{
+
+}
+
 const QString CmdItem::highlight(QString source, const QString &keyword)
 {
     QRegExp rx("", Qt::CaseInsensitive, QRegExp::RegExp);

@@ -4,6 +4,7 @@
 #include "shadowwidget.h"
 #include "cmditemsortfilterproxymodel.h"
 #include "cmditemdelegate.h"
+#include "CmdItem/cmditem.h"
 #include <QKeyEvent>
 #include <QStandardItemModel>
 
@@ -21,6 +22,7 @@ public:
     void activate();
     void reset();
 signals:
+    void resetItems();
     void searchChanged(QString searchText);
 public slots:
     void textChanged();
@@ -33,7 +35,7 @@ private:
     CmdItemSortFilterProxyModel *m_proxyModel;
     CmdItemDelegate *m_delegate;
 
-    void addItemToSourceModel(QStandardItem *item);
+    void addItemToSourceModel(CmdItem *item);
     void updateCmdView(QStandardItemModel *model);
 };
 

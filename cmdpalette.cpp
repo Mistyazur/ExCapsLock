@@ -15,33 +15,38 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     ui(new Ui::Cmd)
 {
     // Set window attributes
+
     setWindowFlags(Qt::Tool | Qt::FramelessWindowHint/* | Qt::WindowStaysOnTopHint*/);
     setAttribute(Qt::WA_TranslucentBackground);
+
     // Set window topmost (Qt::WindowStaysOnTopHint does not work when run as administrator)
+
     ::SetWindowPos((HWND)winId(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
 
     // Set UI
+
     setFixedSize(600, 400);
     ui->setupUi(this);
     ui->listView->setFocusPolicy(Qt::NoFocus);
-    ui->listView->setWordWrap(true);
 
     // Proxy model for list view
+
     m_proxyModel = new CmdItemSortFilterProxyModel(this);
 
-    // Create command
-    Power *powerSleep = new Power("Power: Sleep", 0, this);
-    Power *powerHibernate = new Power("Power: Hibernate", 1, this);
-    Power *powerShutDown = new Power("Power: Shut Down", 2, this);
-    Power *powerRestart = new Power("Power: Restart", 3, this);
-    Power *powerScreenSaver = new Power("Power: Screen Saver", 4, this);
-    AppLister *appList = new AppLister("App: Run", this);
-    AppRegister *appNew = new AppRegister("App: New", this);
-    ProcLister *procList = new ProcLister("Process: Kill", this);
+    // Source model for list view
+
+    m_stdModel = new QStandardItemModel(this);
+
+    Power *powerSleep = new Power("Power: Sleep", 0, m_stdModel);
+    Power *powerHibernate = new Power("Power: Hibernate", 1, m_stdModel);
+    Power *powerShutDown = new Power("Power: Shut Down", 2, m_stdModel);
+    Power *powerRestart = new Power("Power: Restart", 3, m_stdModel);
+    Power *powerScreenSaver = new Power("Power: Screen Saver", 4, m_stdModel);
+    AppLister *appList = new AppLister("App: Run", m_stdModel);
+    AppRegister *appNew = new AppRegister("App: New", m_stdModel);
+    ProcLister *procList = new ProcLister("Process: Kill", m_stdModel);
     connect(appNew, &AppRegister::updateApps, appList, &AppLister::updateApps);
 
-    // Source model for list view
-    m_stdModel = new QStandardItemModel(this);
     addItemToSourceModel(powerSleep);
     addItemToSourceModel(powerHibernate);
     addItemToSourceModel(powerShutDown);
@@ -146,16 +151,25 @@ void CmdPalette::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void CmdPalette::addItemToSourceModel(QStandardItem *item)
+void CmdPalette::addItemToSourceModel(CmdItem *item)
 {
     static int index = 0;
+
+    connect(this, &CmdPalette::resetItems, item, &CmdItem::reset);
     m_stdModel->setItem(index, item);
+
     ++index;
 }
 
 void CmdPalette::reset()
 {
+    // Clear text.
     ui->lineEdit->clear();
+
+    // Set standard model's items reset
+    emit resetItems();
+
+    // Update list view to standard model
     updateCmdView(m_stdModel);
     hide();
 }

@@ -1,28 +1,37 @@
 #include "proclister.h"
 #include "prockiller.h"
-#include <windows.h>
+#include <Windows.h>
 #include <TlHelp32.h>
 #include <Psapi.h>
-#include <QProcess>
 #include <QHash>
 #include <QDebug>
+
 
 
 
 ProcLister::ProcLister(const QString &text, QObject *parent) :
     CmdItem(text, parent)
 {
-
+    connect(&m_timer, &QTimer::timeout, this, &ProcLister::update);
 }
 
 bool ProcLister::exec()
-{
-    timerEvent(nullptr);
-    startTimer(1000);
+{ 
+    // Update immediately
+    update();
+
+    // Then update every 1 sec
+    m_timer.start(1000);
+
     return true;
 }
 
-void ProcLister::timerEvent(QTimerEvent *)
+void ProcLister::reset()
+{
+   m_timer.stop();
+}
+
+void ProcLister::update()
 {
     // Get time past since last time
 
@@ -65,6 +74,7 @@ void ProcLister::timerEvent(QTimerEvent *)
                 QString &caption = QString::fromWCharArray(pe32.szExeFile);
                 QStringList params;
                 params += QString::number(pe32.th32ProcessID);
+                params += user(hProcess);
                 params += QString::number(cpuUsage(hProcess, pe32.th32ProcessID, timeDelta));
                 params += QString::number(memoryUsage(hProcess)/1024) + " K";
                 m_resModel->setItem(index++, new ProcKiller(caption, params));
@@ -76,6 +86,56 @@ void ProcLister::timerEvent(QTimerEvent *)
     }
 
     ::CloseHandle(hProcessSnap);
+}
+
+QString ProcLister::user(HANDLE hProcess)
+{
+    QString user;
+    DWORD dwSize = 0;
+
+    // Open process token
+
+    HANDLE hToken = NULL;
+
+    if(!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) {
+        return user;
+    }
+
+    // Get infomation of token
+
+    if (!GetTokenInformation(hToken, TokenUser, nullptr, 0, &dwSize)) {
+        if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+            goto Cleanup;
+    }
+
+    PTOKEN_USER ptu = (PTOKEN_USER)LocalAlloc(LPTR, dwSize);
+    if (ptu == NULL)
+        goto Cleanup;
+
+    if (!GetTokenInformation(hToken, TokenUser, (LPVOID)ptu, dwSize, &dwSize))
+        goto Cleanup;
+
+    // Look up account information
+
+    SID_NAME_USE SidType;
+    wchar_t lpName[MAX_PATH];
+    wchar_t lpDomain[MAX_PATH];
+
+    dwSize = MAX_PATH;
+    if(!LookupAccountSid(NULL , ptu->User.Sid, lpName, &dwSize, lpDomain, &dwSize, &SidType))
+        goto Cleanup;
+
+    user = QString::fromWCharArray(lpName);
+    user = user.split("/").last();
+
+Cleanup:
+    if (hToken)
+        CloseHandle(hToken);
+
+    if (ptu)
+        LocalFree((HLOCAL)ptu);
+
+    return user;
 }
 
 LONG ProcLister::cpuUsage(HANDLE hProcess, LONG pid, LONGLONG timeDelta)
@@ -149,17 +209,17 @@ LONGLONG ProcLister::memoryUsage(HANDLE hProcess)
     PSAPI_WORKING_SET_BLOCK *pWorkSetBlock = workSetInfo.WorkingSetInfo;
     if(!::QueryWorkingSet(hProcess, &workSetInfo, sizeof(PSAPI_WORKING_SET_INFORMATION))) {
         if(GetLastError() == ERROR_BAD_LENGTH) {
-            DWORD requiredSize = sizeof(workSetInfo.NumberOfEntries) + workSetInfo.NumberOfEntries*sizeof(PSAPI_WORKING_SET_BLOCK);
+            SIZE_T requiredSize = sizeof(workSetInfo.NumberOfEntries) + workSetInfo.NumberOfEntries*sizeof(PSAPI_WORKING_SET_BLOCK);
             pByte = new BYTE[requiredSize]{0};
             pWorkSetBlock = (PSAPI_WORKING_SET_BLOCK *)(pByte + sizeof(workSetInfo.NumberOfEntries));
             if(!::QueryWorkingSet(hProcess, pByte, requiredSize))
             {
-                goto CLEAN;
+                goto Cleanup;
             }
         }
         else
         {
-            goto CLEAN;
+            goto Cleanup;
         }
     }
 
@@ -169,7 +229,7 @@ LONGLONG ProcLister::memoryUsage(HANDLE hProcess)
             workSetPrivate += performanceInfo.PageSize;
     }
 
-    CLEAN:
+Cleanup:
     if (pByte)
         delete[] pByte;
     CloseHandle(hProcess);

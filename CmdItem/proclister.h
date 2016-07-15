@@ -3,6 +3,7 @@
 
 #include "cmditem.h"
 #include <Windows.h>
+#include <QTimer>
 
 class ProcLister : public CmdItem
 {
@@ -10,10 +11,13 @@ class ProcLister : public CmdItem
 public:
     ProcLister(const QString &text, QObject *parent = 0);
     bool exec();
-protected:
-    void timerEvent(QTimerEvent *);
+public slots:
+    void reset();
+    void update();
 private:
+    QTimer m_timer;
 
+    QString user(HANDLE hProcess);
     LONG cpuUsage(HANDLE hProcess, LONG pid, LONGLONG timeDelta);
     LONGLONG memoryUsage(HANDLE hProcess);
 };
