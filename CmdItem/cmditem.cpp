@@ -11,6 +11,16 @@ CmdItem::~CmdItem()
     delete m_resultModel;
 }
 
+void CmdItem::autoUpdate()
+{
+
+}
+
+bool CmdItem::isAutoUpdate()
+{
+    return false;
+}
+
 const QString CmdItem::html(const QString &searchKeyword)
 {
     return QString("<h6>%1</h6>").arg(highlight(text(), searchKeyword));
@@ -19,11 +29,6 @@ const QString CmdItem::html(const QString &searchKeyword)
 QStandardItemModel *CmdItem::resultModel()
 {
     return m_resultModel;
-}
-
-void CmdItem::reset()
-{
-
 }
 
 const QString CmdItem::highlight(QString source, const QString &keyword)

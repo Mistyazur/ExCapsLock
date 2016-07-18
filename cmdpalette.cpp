@@ -14,6 +14,8 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     ShadowWidget(parent),
     ui(new Ui::Cmd)
 {
+    m_currentItem = nullptr;
+
     // Set window attributes
 
     setWindowFlags(Qt::Tool | Qt::FramelessWindowHint/* | Qt::WindowStaysOnTopHint*/);
@@ -58,6 +60,7 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     updateCmdView(m_stdModel);
 
     // Delegate for highlight input matches
+
     m_delegate = new CmdItemDelegate(this);
     ui->listView->setItemDelegate(m_delegate);
 
@@ -65,6 +68,10 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     connect(ui->listView, &QListView::activated, this, &CmdPalette::cmdActivate);
     connect(this, &CmdPalette::searchChanged, m_delegate, &CmdItemDelegate::searchChanged);
     connect(this, &CmdPalette::searchChanged, m_proxyModel, &CmdItemSortFilterProxyModel::searchChanged);
+
+   // Timer for updating list view automatically
+
+    connect(&m_timer, &QTimer::timeout, this, &CmdPalette::autoUpdate);
 }
 
 CmdPalette::~CmdPalette()
@@ -81,6 +88,47 @@ void CmdPalette::activate()
 
         // Set Focus
         ::SetFocus((HWND)winId());
+    }
+}
+
+void CmdPalette::reset()
+{
+    // Clear text.
+    ui->lineEdit->clear();
+
+    // Update list view to standard model
+    updateCmdView(m_stdModel);
+    hide();
+}
+
+void CmdPalette::cmdActivate(const QModelIndex &index)
+{
+    m_currentItem = (CmdItem *)((QStandardItemModel *)m_proxyModel->sourceModel())->itemFromIndex(m_proxyModel->mapToSource(index));
+    m_currentItem->exec();
+
+    if (m_currentItem->resultModel()->rowCount() > 0)
+    {
+        ui->lineEdit->clear();
+        updateCmdView(m_currentItem->resultModel());
+
+        // Update every second if it's auto-updated
+        if (m_currentItem->isAutoUpdate())
+            m_timer.start(1000);
+    }
+    else
+    {
+        reset();
+    }
+}
+
+void CmdPalette::autoUpdate()
+{
+    if (m_currentItem)
+    {
+        m_currentItem->autoUpdate();
+
+        // Update list view
+        ((QWidget *)ui->listView)->update();
     }
 }
 
@@ -115,22 +163,6 @@ void CmdPalette::textChanged()
     ui->listView->selectionModel()->setCurrentIndex(m_proxyModel->index(0, 0), QItemSelectionModel::ClearAndSelect);
 }
 
-void CmdPalette::cmdActivate(const QModelIndex &index)
-{
-    CmdItem *item = (CmdItem *)((QStandardItemModel *)m_proxyModel->sourceModel())->itemFromIndex(m_proxyModel->mapToSource(index));
-    item->exec();
-
-    if (item->resultModel()->rowCount() > 0)
-    {
-        ui->lineEdit->clear();
-        updateCmdView(item->resultModel());
-    }
-    else
-    {
-        reset();
-    }
-}
-
 void CmdPalette::closeEvent(QCloseEvent *event)
 {
     // Ignore ALT+F4
@@ -161,27 +193,16 @@ void CmdPalette::addItemToSourceModel(CmdItem *item)
 {
     static int index = 0;
 
-    connect(this, &CmdPalette::resetItems, item, &CmdItem::reset);
     m_stdModel->setItem(index, item);
 
     ++index;
 }
 
-void CmdPalette::reset()
-{
-    // Clear text.
-    ui->lineEdit->clear();
-
-    // Set standard model's items reset
-    emit resetItems();
-
-    // Update list view to standard model
-    updateCmdView(m_stdModel);
-    hide();
-}
-
 void CmdPalette::updateCmdView(QStandardItemModel *model)
 {
+    // Stop timer
+    m_timer.stop();
+
     // Set model
     m_proxyModel->setSourceModel(model);
     ui->listView->setModel(m_proxyModel);

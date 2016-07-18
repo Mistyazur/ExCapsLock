@@ -5,6 +5,7 @@
 #include "cmditemsortfilterproxymodel.h"
 #include "cmditemdelegate.h"
 #include "CmdItem/cmditem.h"
+#include <QTimer>
 #include <QKeyEvent>
 #include <QStandardItemModel>
 
@@ -22,19 +23,21 @@ public:
     void activate();
     void reset();
 signals:
-    void resetItems();
     void searchChanged(QString searchText);
 public slots:
-    void textChanged();
     void cmdActivate(const QModelIndex &index);
+    void autoUpdate();
+    void textChanged();
 protected:
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *event);
 private:
     Ui::Cmd *ui;
+    QTimer m_timer;
     QStandardItemModel *m_stdModel;
     CmdItemSortFilterProxyModel *m_proxyModel;
     CmdItemDelegate *m_delegate;
+    CmdItem *m_currentItem;
 
     void addItemToSourceModel(CmdItem *item);
     void updateCmdView(QStandardItemModel *model);

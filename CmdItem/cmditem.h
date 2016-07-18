@@ -13,11 +13,12 @@ public:
     ~CmdItem();
 
     virtual bool exec() = 0;
+    virtual void autoUpdate();
+    virtual bool isAutoUpdate();
     virtual const QString html(const QString &searchKeyword);
 
     QStandardItemModel *resultModel();
 public slots:
-    virtual void reset();
 protected:
     QStandardItemModel *m_resultModel;
 

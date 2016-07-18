@@ -13,26 +13,22 @@
 ProcLister::ProcLister(const QString &text, QObject *parent) :
     CmdItem(text, parent)
 {
-    connect(&m_timer, &QTimer::timeout, this, &ProcLister::update);
 }
 
 bool ProcLister::exec()
 { 
     // Update immediately
-    update();
-
-    // Then update every 1 sec
-    m_timer.start(1000);
+    autoUpdate();
 
     return true;
 }
 
-void ProcLister::reset()
+bool ProcLister::isAutoUpdate()
 {
-   m_timer.stop();
+    return true;
 }
 
-void ProcLister::update()
+void ProcLister::autoUpdate()
 {
     // Get time past since last time
 
@@ -98,8 +94,6 @@ void ProcLister::update()
     }
 
     ::CloseHandle(hProcessSnap);
-
-    // Update list view
 }
 
 QString ProcLister::user(HANDLE hProcess)
