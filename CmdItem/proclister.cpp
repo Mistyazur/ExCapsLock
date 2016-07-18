@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <Psapi.h>
+#include <QWidget>
 #include <QHash>
 #include <QDebug>
 
@@ -77,7 +78,18 @@ void ProcLister::update()
                 params += user(hProcess);
                 params += QString::number(cpuUsage(hProcess, pe32.th32ProcessID, timeDelta));
                 params += QString::number(memoryUsage(hProcess)/1024) + " K";
-                m_resModel->setItem(index++, new ProcKiller(caption, params));
+//                m_resModel->setItem(index++, new ProcKiller(caption, params));
+
+                if (m_resultModel->item(index))
+                {
+                    m_resultModel->item(index)->setText(caption);
+                    ((ProcKiller *)m_resultModel->item(index))->setParams(params);
+                }
+                else
+                {
+                    m_resultModel ->setItem(index, new ProcKiller(caption, params));
+                }
+                ++index;
 
                 ::CloseHandle(hProcess);
             }
@@ -86,6 +98,8 @@ void ProcLister::update()
     }
 
     ::CloseHandle(hProcessSnap);
+
+    // Update list view
 }
 
 QString ProcLister::user(HANDLE hProcess)

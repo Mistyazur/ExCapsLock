@@ -1,4 +1,5 @@
 #include "prockiller.h"
+#include <Windows.h>
 
 ProcKiller::ProcKiller(const QString &text, const QStringList &params, QObject *parent) :
     CmdItem(text, parent), m_params(params)
@@ -8,7 +9,18 @@ ProcKiller::ProcKiller(const QString &text, const QStringList &params, QObject *
 
 bool ProcKiller::exec()
 {
+    HANDLE hProcess = ::OpenProcess(PROCESS_TERMINATE, FALSE, m_params.first().toInt());
+    if (NULL != hProcess) {
+        ::TerminateProcess(hProcess, 0);
+
+        ::CloseHandle(hProcess);
+    }
     return true;
+}
+
+void ProcKiller::setParams(const QStringList params)
+{
+    m_params = params;
 }
 
 const QString ProcKiller::html(const QString &searchKeyword)

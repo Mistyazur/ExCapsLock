@@ -4,8 +4,10 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 
-class CmdItem : public QStandardItem , public QObject
+
+class CmdItem : public QObject, public QStandardItem
 {
+    Q_OBJECT
 public:
     CmdItem(const QString &text, QObject *parent = nullptr);
     ~CmdItem();
@@ -13,11 +15,11 @@ public:
     virtual bool exec() = 0;
     virtual const QString html(const QString &searchKeyword);
 
-    QStandardItemModel *resModel();
+    QStandardItemModel *resultModel();
 public slots:
     virtual void reset();
 protected:
-    QStandardItemModel *m_resModel;
+    QStandardItemModel *m_resultModel;
 
     const QString highlight(QString source, const QString &keyword);
 };

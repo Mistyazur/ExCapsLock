@@ -9,6 +9,7 @@ class ProcKiller : public CmdItem
 public:
     ProcKiller(const QString &text, const QStringList &params, QObject *parent = 0);
     bool exec();
+    void setParams(const QStringList params);
     const QString html(const QString &searchKeyword);
 private:
     QStringList m_params;

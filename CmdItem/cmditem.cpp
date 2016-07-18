@@ -3,12 +3,12 @@
 CmdItem::CmdItem(const QString &text, QObject *parent) :
     QStandardItem(text), QObject(parent)
 {
-    m_resModel = new QStandardItemModel();
+    m_resultModel = new QStandardItemModel();
 }
 
 CmdItem::~CmdItem()
 {
-    delete m_resModel;
+    delete m_resultModel;
 }
 
 const QString CmdItem::html(const QString &searchKeyword)
@@ -16,9 +16,9 @@ const QString CmdItem::html(const QString &searchKeyword)
     return QString("<h6>%1</h6>").arg(highlight(text(), searchKeyword));
 }
 
-QStandardItemModel *CmdItem::resModel()
+QStandardItemModel *CmdItem::resultModel()
 {
-    return m_resModel;
+    return m_resultModel;
 }
 
 void CmdItem::reset()

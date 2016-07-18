@@ -28,6 +28,7 @@ public slots:
     void textChanged();
     void cmdActivate(const QModelIndex &index);
 protected:
+    void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *event);
 private:
     Ui::Cmd *ui;

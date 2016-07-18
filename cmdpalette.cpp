@@ -37,14 +37,14 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 
     m_stdModel = new QStandardItemModel(this);
 
-    Power *powerSleep = new Power("Power: Sleep", 0, m_stdModel);
-    Power *powerHibernate = new Power("Power: Hibernate", 1, m_stdModel);
-    Power *powerShutDown = new Power("Power: Shut Down", 2, m_stdModel);
-    Power *powerRestart = new Power("Power: Restart", 3, m_stdModel);
-    Power *powerScreenSaver = new Power("Power: Screen Saver", 4, m_stdModel);
-    AppLister *appList = new AppLister("App: Run", m_stdModel);
-    AppRegister *appNew = new AppRegister("App: New", m_stdModel);
-    ProcLister *procList = new ProcLister("Process: Kill", m_stdModel);
+    Power *powerSleep = new Power("Power: Sleep", 0, this);
+    Power *powerHibernate = new Power("Power: Hibernate", 1, this);
+    Power *powerShutDown = new Power("Power: Shut Down", 2, this);
+    Power *powerRestart = new Power("Power: Restart", 3, this);
+    Power *powerScreenSaver = new Power("Power: Screen Saver", 4, this);
+    AppLister *appList = new AppLister("App: Run", this);
+    AppRegister *appNew = new AppRegister("App: New", this);
+    ProcLister *procList = new ProcLister("Process: Kill", this);
     connect(appNew, &AppRegister::updateApps, appList, &AppLister::updateApps);
 
     addItemToSourceModel(powerSleep);
@@ -120,15 +120,21 @@ void CmdPalette::cmdActivate(const QModelIndex &index)
     CmdItem *item = (CmdItem *)((QStandardItemModel *)m_proxyModel->sourceModel())->itemFromIndex(m_proxyModel->mapToSource(index));
     item->exec();
 
-    if (item->resModel()->rowCount() > 0)
+    if (item->resultModel()->rowCount() > 0)
     {
         ui->lineEdit->clear();
-        updateCmdView(item->resModel());
+        updateCmdView(item->resultModel());
     }
     else
     {
         reset();
     }
+}
+
+void CmdPalette::closeEvent(QCloseEvent *event)
+{
+    // Ignore ALT+F4
+    event->ignore();
 }
 
 void CmdPalette::keyPressEvent(QKeyEvent *event)
