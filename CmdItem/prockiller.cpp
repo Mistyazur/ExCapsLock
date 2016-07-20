@@ -1,15 +1,15 @@
 #include "prockiller.h"
 #include <Windows.h>
 
-ProcKiller::ProcKiller(const QString &text, const QStringList &params, QObject *parent) :
-    CmdItem(text, parent), m_params(params)
+ProcKiller::ProcKiller(const QString &text, QObject *parent) :
+    CmdItem(text, parent)
 {
 
 }
 
 bool ProcKiller::exec()
 {
-    HANDLE hProcess = ::OpenProcess(PROCESS_TERMINATE, FALSE, m_params.first().toInt());
+    HANDLE hProcess = ::OpenProcess(PROCESS_TERMINATE, FALSE, m_infoList.first().toInt());
     if (NULL != hProcess) {
         ::TerminateProcess(hProcess, 0);
 
@@ -18,9 +18,9 @@ bool ProcKiller::exec()
     return true;
 }
 
-void ProcKiller::setParams(const QStringList params)
+void ProcKiller::setInfo(const QStringList &infoList)
 {
-    m_params = params;
+    m_infoList = infoList;
 }
 
 const QString ProcKiller::html(const QString &searchKeyword)
@@ -33,9 +33,9 @@ const QString ProcKiller::html(const QString &searchKeyword)
                            "<td width= \"10%\" align=\"right\">%5</td>"	\
                            "</td></tr></table>")
             .arg(highlight(text(), searchKeyword))
-            .arg(m_params.at(0))
-            .arg(m_params.at(1))
-            .arg(m_params.at(2))
-            .arg(m_params.at(3));
+            .arg(m_infoList.at(0))
+            .arg(m_infoList.at(1))
+            .arg(m_infoList.at(2))
+            .arg(m_infoList.at(3));
     return html;
 }

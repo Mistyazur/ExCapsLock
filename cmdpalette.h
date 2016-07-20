@@ -33,7 +33,7 @@ protected:
     void keyPressEvent(QKeyEvent *event);
 private:
     Ui::Cmd *ui;
-    QTimer m_timer;
+    QTimer m_autoUpdateTimer;
     QStandardItemModel *m_stdModel;
     CmdItemSortFilterProxyModel *m_proxyModel;
     CmdItemDelegate *m_delegate;

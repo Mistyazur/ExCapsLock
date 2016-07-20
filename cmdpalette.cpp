@@ -5,6 +5,7 @@
 #include "CmdItem/applister.h"
 #include "CmdItem/appregister.h"
 #include "CmdItem/proclister.h"
+#include "CmdItem/winlister.h"
 #include <QDebug>
 #include <QtMath>
 #include <QPainter>
@@ -47,6 +48,8 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     AppLister *appList = new AppLister("App: Run", this);
     AppRegister *appNew = new AppRegister("App: New", this);
     ProcLister *procList = new ProcLister("Process: Kill", this);
+    winLister *winList = new winLister("Window: Switch");
+
     connect(appNew, &AppRegister::updateApps, appList, &AppLister::updateApps);
 
     addItemToSourceModel(powerSleep);
@@ -57,6 +60,7 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     addItemToSourceModel(appList);
     addItemToSourceModel(appNew);
     addItemToSourceModel(procList);
+    addItemToSourceModel(winList);
     updateCmdView(m_stdModel);
 
     // Delegate for highlight input matches
@@ -71,7 +75,7 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 
    // Timer for updating list view automatically
 
-    connect(&m_timer, &QTimer::timeout, this, &CmdPalette::autoUpdate);
+    connect(&m_autoUpdateTimer, &QTimer::timeout, this, &CmdPalette::autoUpdate);
 }
 
 CmdPalette::~CmdPalette()
@@ -86,8 +90,11 @@ void CmdPalette::activate()
         // Show
         show();
 
-        // Set Focus
-        ::SetFocus((HWND)winId());
+        // Set window foreground
+        ::SetForegroundWindow((HWND)winId());
+
+        // Set line edit focus
+        ui->lineEdit->setFocus();
     }
 }
 
@@ -113,7 +120,7 @@ void CmdPalette::cmdActivate(const QModelIndex &index)
 
         // Update every second if it's auto-updated
         if (m_currentItem->isAutoUpdate())
-            m_timer.start(1000);
+            m_autoUpdateTimer.start(1000);
     }
     else
     {
@@ -201,7 +208,7 @@ void CmdPalette::addItemToSourceModel(CmdItem *item)
 void CmdPalette::updateCmdView(QStandardItemModel *model)
 {
     // Stop timer
-    m_timer.stop();
+    m_autoUpdateTimer.stop();
 
     // Set model
     m_proxyModel->setSourceModel(model);

@@ -69,21 +69,21 @@ void ProcLister::autoUpdate()
             if (NULL != hProcess) {
 
                 QString &caption = QString::fromWCharArray(pe32.szExeFile);
-                QStringList params;
-                params += QString::number(pe32.th32ProcessID);
-                params += user(hProcess);
-                params += QString::number(cpuUsage(hProcess, pe32.th32ProcessID, timeDelta));
-                params += QString::number(memoryUsage(hProcess)/1024) + " K";
-//                m_resModel->setItem(index++, new ProcKiller(caption, params));
+                QStringList infoList;
+                infoList += QString::number(pe32.th32ProcessID);
+                infoList += user(hProcess);
+                infoList += QString::number(cpuUsage(hProcess, pe32.th32ProcessID, timeDelta));
+                infoList += QString::number(memoryUsage(hProcess)/1024) + " K";
 
                 if (m_resultModel->item(index))
                 {
                     m_resultModel->item(index)->setText(caption);
-                    ((ProcKiller *)m_resultModel->item(index))->setParams(params);
+                    ((ProcKiller *)m_resultModel->item(index))->setInfo(infoList);
                 }
                 else
                 {
-                    m_resultModel ->setItem(index, new ProcKiller(caption, params));
+                    m_resultModel ->setItem(index, new ProcKiller(caption));
+                    ((ProcKiller *)m_resultModel->item(index))->setInfo(infoList);
                 }
                 ++index;
 

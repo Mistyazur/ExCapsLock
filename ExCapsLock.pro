@@ -25,7 +25,9 @@ SOURCES += main.cpp \
     CmdItem/appregister.cpp \
     CmdItem/applister.cpp \
     CmdItem/proclister.cpp \
-    CmdItem/prockiller.cpp
+    CmdItem/prockiller.cpp \
+    CmdItem/winlister.cpp \
+    CmdItem/wincontrol.cpp
 
 HEADERS  += \
     keyboardhook.h \
@@ -43,7 +45,9 @@ HEADERS  += \
     CmdItem/applister.h \
     keysequence.h \
     CmdItem/proclister.h \
-    CmdItem/prockiller.h
+    CmdItem/prockiller.h \
+    CmdItem/winlister.h \
+    CmdItem/wincontrol.h
 
 FORMS    += cmd.ui
 
