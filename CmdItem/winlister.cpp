@@ -66,7 +66,7 @@ bool winLister::exec()
                     title = "None";
                 QStringList infoList;
                 infoList += title;
-                infoList += QString::number((int)hWnd, 16);
+                infoList += QString::number((LONGLONG)hWnd, 16);
 
 //                qDebug()<<caption<<QString::fromWCharArray(szTitle)<<hWnd;
                 m_resultModel->setItem(index, new WinControl(processName, this));

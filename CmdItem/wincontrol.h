@@ -10,6 +10,8 @@ public:
     bool exec();
     void setInfo(const QStringList &infoList);
     const QString html(const QString &searchKeyword);
+
+    static void bringToFront(HWND hWnd);
 private:
     QStringList m_infoList;
 };

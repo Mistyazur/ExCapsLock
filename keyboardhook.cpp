@@ -1,6 +1,8 @@
 #include "keyboardhook.h"
 #include "keysequence.h"
 #include "cmdpalette.h"
+#include "CmdItem/wincontrol.h"
+#include "TlHelp32.h"
 #include <QTime>
 #include <QDebug>
 
@@ -31,6 +33,79 @@ void KeyUp(WORD key)
     input[0].ki.wVk = key;
     input[0].ki.dwFlags = KEYEVENTF_KEYUP;
     ::SendInput(_countof(input), input, sizeof(INPUT));
+}
+
+void SwitchWindowWithSameOwner()
+{
+    // Get foreground window process id and window handle
+
+    HWND hWnd = ::GetForegroundWindow();
+    if (hWnd == NULL)
+        return;
+
+    DWORD dwForegroundPid;
+    ::GetWindowThreadProcessId(hWnd, &dwForegroundPid);
+
+    // Get processes
+
+    QHash<DWORD, QString> procIdNameHash;
+    HANDLE hProcessSnap;
+    PROCESSENTRY32 pe32 = {sizeof(PROCESSENTRY32), };
+
+    hProcessSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (INVALID_HANDLE_VALUE == hProcessSnap)
+        return;
+
+    if (::Process32First(hProcessSnap, &pe32))
+    {
+        do {
+
+            procIdNameHash.insert(pe32.th32ProcessID, QString::fromWCharArray(pe32.szExeFile));
+
+        } while (::Process32Next(hProcessSnap, &pe32));
+    }
+
+    ::CloseHandle(hProcessSnap);
+
+    // Bring tagert windowt to front
+
+    WINDOWINFO winInfo = {sizeof(WINDOWINFO), };
+    HWND hTargetWnd = NULL;
+
+    while ((hWnd = ::GetWindow(hWnd, GW_HWNDNEXT)) != NULL)
+    {
+        ::GetWindowInfo(hWnd, &winInfo);
+        if (!(winInfo.dwStyle & WS_DISABLED)
+                && (winInfo.dwStyle & WS_VISIBLE)
+                && !(winInfo.dwExStyle & WS_EX_TRANSPARENT))
+        {
+            if ((winInfo.rcWindow.left != 0) &&
+                    (winInfo.rcWindow.top != 0) &&
+                    (winInfo.rcWindow.right != 0) &&
+                    (winInfo.rcWindow.bottom != 0))
+            {
+                DWORD dwPid;
+                ::GetWindowThreadProcessId(hWnd, &dwPid);
+                if (dwPid == dwForegroundPid)
+                {
+                    WinControl::bringToFront(hWnd);
+                    return;
+                }
+                else
+                {
+                    const QString &foregroundProcName = procIdNameHash.value(dwForegroundPid, "");
+                    const QString &procName = procIdNameHash.value(dwPid, "");
+                    if ((hTargetWnd == NULL)
+                            && !foregroundProcName.isEmpty()
+                            && (foregroundProcName == procName))
+                        hTargetWnd = hWnd;
+                }
+            }
+        }
+    }
+
+    if (hTargetWnd != NULL)
+        WinControl::bringToFront(hTargetWnd);
 }
 
 LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
@@ -100,7 +175,9 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
         nKeySeq = keySeq.count();
 
         // Trigger
-        if (keySeq == KeySequence({VK_CAPITAL, 'W'}))
+        if (keySeq == KeySequence({VK_CAPITAL, VK_TAB}))
+            SwitchWindowWithSameOwner();
+        else if (keySeq == KeySequence({VK_CAPITAL, 'W'}))
             KeyDown(VK_UP);
         else if (keySeq == KeySequence({VK_CAPITAL, 'S'}))
             KeyDown(VK_DOWN);
@@ -116,7 +193,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
         {
             // Esc simulation when Caps Lock hold less than 200 msec
             // Enter simulation when Caps Lock hold more than 200 msec
-            if (tCLHold.elapsed() < 200)
+            if (tCLHold.elapsed() < 500)
                 KeyPress(VK_ESCAPE);
             else
                 KeyPress(VK_RETURN);

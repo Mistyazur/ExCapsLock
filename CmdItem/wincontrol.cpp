@@ -10,21 +10,9 @@ WinControl::WinControl(const QString &text, QObject *parent) :
 
 bool WinControl::exec()
 {
-    HWND hWnd = (HWND)m_infoList.last().toInt(nullptr, 16);
+    HWND hWnd = (HWND)m_infoList.last().toLongLong(nullptr, 16);
 
-    // Restore minimized window
-
-    WINDOWPLACEMENT placement;
-    placement.length = sizeof(placement);
-    if(GetWindowPlacement(hWnd, &placement))
-    {
-        if ((placement.showCmd & SW_SHOWMINIMIZED))
-            ::SendMessage(hWnd, WM_SYSCOMMAND, SC_RESTORE, 0);
-    }
-
-    // Set window foreground
-
-    ::SetForegroundWindow(hWnd);
+    bringToFront(hWnd);
 
     return true;
 }
@@ -39,4 +27,20 @@ const QString WinControl::html(const QString &searchKeyword)
     return QString("<h6>%1</h6><p>%2</p>")
             .arg(m_infoList.first())
             .arg(highlight(text(), searchKeyword));
+}
+
+void WinControl::bringToFront(HWND hWnd)
+{
+    // Restore minimized window
+
+    if (::IsIconic(hWnd))
+        ::OpenIcon(hWnd);
+
+    // Set window foreground
+
+    for (;;)
+    {
+        if (::SetForegroundWindow(hWnd))
+            break;
+    }
 }
