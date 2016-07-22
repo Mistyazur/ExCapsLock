@@ -1,5 +1,5 @@
 #include "winlister.h"
-#include "wincontrol.h"
+#include "wincontrollor.h"
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <QDebug>
@@ -38,7 +38,6 @@ bool winLister::exec()
 
     // Get windows
 
-//    QHash<DWORD, QList<HWND>> procIdWinHash;
     WINDOWINFO winInfo = {sizeof(WINDOWINFO), };
     HWND hWnd = ::GetTopWindow(NULL);
 
@@ -68,15 +67,12 @@ bool winLister::exec()
                 infoList += title;
                 infoList += QString::number((LONGLONG)hWnd, 16);
 
-//                qDebug()<<caption<<QString::fromWCharArray(szTitle)<<hWnd;
-                m_resultModel->setItem(index, new WinControl(processName, this));
-                ((WinControl *)m_resultModel->item(index))->setInfo(infoList);
+                if (processName.endsWith(".exe", Qt::CaseInsensitive))
+                    processName.chop(4);
+                m_resultModel->setItem(index, new WinControllor(processName, this));
+                ((WinControllor *)m_resultModel->item(index))->setInfo(infoList);
 
                 ++index;
-//                QList<HWND> winList = procIdWinHash.take(dwPid);
-//                if (winList.contains(hWnd))
-//                    winList += hWnd;
-//                procIdWinHash.insert(dwPid, winList);
             }
         }
     } while ((hWnd = ::GetWindow(hWnd, GW_HWNDNEXT)) != NULL);

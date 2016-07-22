@@ -1,7 +1,7 @@
 #include "keyboardhook.h"
 #include "keysequence.h"
 #include "cmdpalette.h"
-#include "CmdItem/wincontrol.h"
+#include "CmdItem/wincontrollor.h"
 #include "TlHelp32.h"
 #include <QTime>
 #include <QDebug>
@@ -88,7 +88,7 @@ void SwitchWindowWithSameOwner()
                 ::GetWindowThreadProcessId(hWnd, &dwPid);
                 if (dwPid == dwForegroundPid)
                 {
-                    WinControl::bringToFront(hWnd);
+                    WinControllor::bringToFront(hWnd);
                     return;
                 }
                 else
@@ -96,7 +96,7 @@ void SwitchWindowWithSameOwner()
                     const QString &foregroundProcName = procIdNameHash.value(dwForegroundPid, "");
                     const QString &procName = procIdNameHash.value(dwPid, "");
                     if ((hTargetWnd == NULL)
-                            && !foregroundProcName.isEmpty()
+                            && (!foregroundProcName.isEmpty())
                             && (foregroundProcName == procName))
                         hTargetWnd = hWnd;
                 }
@@ -105,7 +105,7 @@ void SwitchWindowWithSameOwner()
     }
 
     if (hTargetWnd != NULL)
-        WinControl::bringToFront(hTargetWnd);
+        WinControllor::bringToFront(hTargetWnd);
 }
 
 LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)

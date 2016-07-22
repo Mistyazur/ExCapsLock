@@ -27,7 +27,7 @@ SOURCES += main.cpp \
     CmdItem/proclister.cpp \
     CmdItem/prockiller.cpp \
     CmdItem/winlister.cpp \
-    CmdItem/wincontrol.cpp
+    CmdItem/wincontrollor.cpp
 
 HEADERS  += \
     keyboardhook.h \
@@ -47,7 +47,7 @@ HEADERS  += \
     CmdItem/proclister.h \
     CmdItem/prockiller.h \
     CmdItem/winlister.h \
-    CmdItem/wincontrol.h
+    CmdItem/wincontrollor.h
 
 FORMS    += cmd.ui
 
