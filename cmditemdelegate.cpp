@@ -21,9 +21,9 @@ CmdItemDelegate::CmdItemDelegate(QObject *parent) :
     doc.setDefaultStyleSheet(CSS_TEXTDOC);
 }
 
-void CmdItemDelegate::searchChanged(QString searchText)
+void CmdItemDelegate::searchChanged(QString search)
 {
-    m_searchText = searchText;
+    m_search = search;
 }
 
 void CmdItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -37,7 +37,7 @@ void CmdItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
     CmdItemSortFilterProxyModel *proxyModel = (CmdItemSortFilterProxyModel *)index.model();
     QStandardItemModel *stdModel = (QStandardItemModel *)proxyModel->sourceModel();
     CmdItem *item = (CmdItem *)stdModel->itemFromIndex(proxyModel->mapToSource(index));
-    doc.setHtml(item->html(m_searchText));
+    doc.setHtml(item->html(m_search));
 
     // Painting item without text
     opt.text.clear();
@@ -67,7 +67,7 @@ QSize CmdItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
     CmdItemSortFilterProxyModel *proxyModel = (CmdItemSortFilterProxyModel *)index.model();
     QStandardItemModel *stdModel = (QStandardItemModel *)proxyModel->sourceModel();
     CmdItem *item = (CmdItem *)stdModel->itemFromIndex(proxyModel->mapToSource(index));
-    doc.setHtml(item->html(m_searchText));
+    doc.setHtml(item->html(m_search));
     doc.setTextWidth(opt.rect.width());
 
     return QSize(doc.idealWidth(), doc.size().height());

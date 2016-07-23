@@ -10,51 +10,51 @@ CmdItemSortFilterProxyModel::CmdItemSortFilterProxyModel(QObject *parent) :
 
 }
 
-void CmdItemSortFilterProxyModel::searchChanged(QString searchText)
+void CmdItemSortFilterProxyModel::searchChanged(QString search)
 {
-    m_serachText = searchText;
+    m_serach = search;
 }
 
-bool CmdItemSortFilterProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
-{
-    bool bRet = false;
-    QString &left = source_left.data().toString();
-    QString &right = source_right.data().toString();
+//bool CmdItemSortFilterProxyModel::lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const
+//{
+//    bool bRet = false;
+//    QString &left = source_left.data().toString();
+//    QString &right = source_right.data().toString();
 
-    int leftMatchType = matchType(left);
-    int rightMatchType = matchType(right);
-    if (leftMatchType == rightMatchType)
-    {
-        bRet = (left.localeAwareCompare(right) <= 0);
-    }
-    else
-    {
-        bRet = (leftMatchType > rightMatchType);
-    }
+//    int leftMatchType = matchType(left);
+//    int rightMatchType = matchType(right);
+//    if (leftMatchType == rightMatchType)
+//    {
+//        bRet = (left.localeAwareCompare(right) <= 0);
+//    }
+//    else
+//    {
+//        bRet = (leftMatchType > rightMatchType);
+//    }
 
-    return bRet;
-}
+//    return bRet;
+//}
 
-int CmdItemSortFilterProxyModel::matchType(const QString &text) const
-{
-    int nRet = MATCH_NONE;
+//int CmdItemSortFilterProxyModel::matchType(const QString &text) const
+//{
+//    int nRet = MATCH_NONE;
 
-    QRegExp rx("", Qt::CaseInsensitive, QRegExp::RegExp);
-    if (!m_serachText.isEmpty())
-    {
-        QString search;
-        foreach(QChar c, m_serachText)
-            search += QString("\\b%1[a-zA-Z]*\\b").arg(c) + ".*";
-        rx.setPattern(search);
-        if (rx.indexIn(text) != -1)
-        {
-            nRet = MATCH_INITIAL;
-        }
-        else if (text.indexOf(m_serachText, 0, Qt::CaseInsensitive) != -1)
-        {
-            nRet = MATCH_CONTAINS;
-        }
-    }
+//    QRegExp rx("", Qt::CaseInsensitive, QRegExp::RegExp);
+//    if (!m_serachText.isEmpty())
+//    {
+//        QString search;
+//        foreach(QChar c, m_serachText)
+//            search += QString("\\b%1[a-zA-Z]*\\b").arg(c) + ".*";
+//        rx.setPattern(search);
+//        if (rx.indexIn(text) != -1)
+//        {
+//            nRet = MATCH_INITIAL;
+//        }
+//        else if (text.indexOf(m_serachText, 0, Qt::CaseInsensitive) != -1)
+//        {
+//            nRet = MATCH_CONTAINS;
+//        }
+//    }
 
-    return nRet;
-}
+//    return nRet;
+//}

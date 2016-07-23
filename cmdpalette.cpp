@@ -71,7 +71,6 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &CmdPalette::textChanged);
     connect(ui->listView, &QListView::activated, this, &CmdPalette::cmdActivate);
     connect(this, &CmdPalette::searchChanged, m_delegate, &CmdItemDelegate::searchChanged);
-    connect(this, &CmdPalette::searchChanged, m_proxyModel, &CmdItemSortFilterProxyModel::searchChanged);
 
    // Timer for updating list view automatically
 
@@ -141,26 +140,22 @@ void CmdPalette::autoUpdate()
 
 void CmdPalette::textChanged()
 {
-    // Install My Extension
-    // Extension: Install Extension
-    // Extension: View
-    // Extension: email
-    // (\bi[a-zA-Z]*\b.*\be[a-zA-Z]*\b)|(.*ie.*)
-    QString search, search0, search1;
+    QString search;
     foreach(QChar c, ui->lineEdit->text())
-        search0 += QString("\\b%1[a-zA-Z]*\\b").arg(c) + ".*";
-    search1 = ui->lineEdit->text();
-    search = QString("(%1)|(%2)").arg(search0).arg(search1);
+        search += QString("(?:.*\\b)?(%1)").arg(c);
+    search += "(?:.*)";
+    qDebug()<<search;
 
     // Set filter
     QRegExp regExp(search, Qt::CaseInsensitive, QRegExp::RegExp);
     m_proxyModel->setFilterRegExp(regExp);
 
     // Set highlight and sort by keyword
-    emit searchChanged(ui->lineEdit->text());
+//    emit searchChanged(ui->lineEdit->text());
+    emit searchChanged(search);
 
-    // Update to make highlight effect
-    ui->listView->update();
+//    // Update to make highlight effect
+//    ui->listView->update();
 
     // Sort to make affect
     m_proxyModel->sort(-1, Qt::AscendingOrder);

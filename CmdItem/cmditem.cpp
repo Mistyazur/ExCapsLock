@@ -21,9 +21,9 @@ bool CmdItem::isAutoUpdate()
     return false;
 }
 
-const QString CmdItem::html(const QString &searchKeyword)
+const QString CmdItem::html(const QString &search)
 {
-    return QString("<h6>%1</h6>").arg(highlight(text(), searchKeyword));
+    return QString("<h6>%1</h6>").arg(highlight(text(), search));
 }
 
 QStandardItemModel *CmdItem::resultModel()
@@ -31,19 +31,14 @@ QStandardItemModel *CmdItem::resultModel()
     return m_resultModel;
 }
 
-const QString CmdItem::highlight(QString source, const QString &keyword)
+const QString CmdItem::highlight(QString source, const QString &search)
 {
-    QRegExp rx("", Qt::CaseInsensitive, QRegExp::RegExp);
-
-    if (!source.isEmpty() && !keyword.isEmpty())
+    if (!source.isEmpty() && !search.isEmpty())
     {
-        QString search;
-        foreach(QChar c, keyword)
-            search += QString("(?:\\b(%1)[a-zA-Z]*\\b)").arg(c) + "(?:.*)";
-        rx.setPattern(search);
+        QRegExp rx(search, Qt::CaseInsensitive, QRegExp::RegExp);
         if (rx.indexIn(source) != -1)
         {
-            for (int i = keyword.length(); i > 0; --i)
+            for (int i = rx.captureCount(); i >= 1; --i)
             {
                 int pos = rx.pos(i);
                 int len = rx.cap(i).length();
@@ -52,11 +47,6 @@ const QString CmdItem::highlight(QString source, const QString &keyword)
                     source.replace(pos, len, QString("<hl>%1</hl>").arg(source.mid(pos, len)));
                 }
             }
-        }
-        else
-        {
-            int pos = source.indexOf(keyword, 0, Qt::CaseInsensitive);
-            source.replace(pos, keyword.length(), QString("<hl>%1</hl>").arg(source.mid(pos, keyword.length())));
         }
     }
 

@@ -23,7 +23,7 @@ public:
     void activate();
     void reset();
 signals:
-    void searchChanged(QString searchText);
+    void searchChanged(QString search);
 public slots:
     void cmdActivate(const QModelIndex &index);
     void autoUpdate();

@@ -10,12 +10,12 @@ class CmdItemDelegate : public QStyledItemDelegate
 public:
     CmdItemDelegate(QObject *parent = 0);
 public slots:
-    void searchChanged(QString searchText);
+    void searchChanged(QString search);
 protected:
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
 private:
-    QString m_searchText;
+    QString m_search;
 };
 
 #endif // CMDITEMDELEGATE_H

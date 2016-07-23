@@ -15,14 +15,14 @@ public:
     virtual bool exec() = 0;
     virtual void autoUpdate();
     virtual bool isAutoUpdate();
-    virtual const QString html(const QString &searchKeyword);
+    virtual const QString html(const QString &search);
 
     QStandardItemModel *resultModel();
 public slots:
 protected:
     QStandardItemModel *m_resultModel;
 
-    const QString highlight(QString source, const QString &keyword);
+    const QString highlight(QString source, const QString &search);
 };
 
 #endif // CMDITEM_H

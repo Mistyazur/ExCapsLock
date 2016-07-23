@@ -10,13 +10,13 @@ class CmdItemSortFilterProxyModel : public QSortFilterProxyModel
 public:
     CmdItemSortFilterProxyModel(QObject *parent = 0);
 public slots:
-    void searchChanged(QString searchText);
+    void searchChanged(QString search);
 protected:
-    bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const;
+//    bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const;
 private:
-    QString m_serachText;
+    QString m_serach;
 
-    int matchType(const QString &text) const;
+//    int matchType(const QString &text) const;
 };
 
 #endif // CMDITEMSORTFILTERPROXYMODEL_H
