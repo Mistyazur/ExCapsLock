@@ -11,15 +11,19 @@ AppLauncher::AppLauncher(const QString &text, const QString &path, QObject *pare
 
 bool AppLauncher::exec()
 {
+#ifndef _M_X64
     PVOID OldValue = NULL;
-    if( Wow64DisableWow64FsRedirection(&OldValue) )
+    if(Wow64DisableWow64FsRedirection(&OldValue))
     {
+#endif
         QString path = "\"" + m_path + "\"";
         if (!path.isEmpty())
             return QProcess::startDetached(path);
 
+#ifndef _M_X64
         Wow64RevertWow64FsRedirection(OldValue);
     }
+#endif
 
     return false;
 }

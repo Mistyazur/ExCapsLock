@@ -26,9 +26,12 @@ void AppRegister::load()
 {
     JSettings settings(USER_SETTINGS);
     m_processList = settings.value(KEY_APP_PATH).toStringList();
-    PVOID OldValue = NULL;
 
-    if( Wow64DisableWow64FsRedirection(&OldValue) ) {
+#ifndef _M_X64
+    PVOID OldValue = NULL;
+    if(Wow64DisableWow64FsRedirection(&OldValue))
+    {
+#endif
         for (auto process : m_processList)
         {
             QFile file(process);
@@ -36,8 +39,10 @@ void AppRegister::load()
                 m_processList.removeOne(process);
         }
 
+#ifndef _M_X64
         Wow64RevertWow64FsRedirection(OldValue);
     }
+#endif
 
     emit updateApps(m_processList);
 }
