@@ -30,7 +30,6 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
 
     setFixedSize(600, 400);
     ui->setupUi(this);
-    ui->listView->setFocusPolicy(Qt::NoFocus);
 
     // Proxy model for list view
 
@@ -86,13 +85,8 @@ void CmdPalette::activate()
 {
     if (!isVisible())
     {
-        // Show
         show();
-
-        // Set window foreground
-        ::SetForegroundWindow((HWND)winId());
-
-        // Set line edit focus
+        activateWindow();
         ui->lineEdit->setFocus();
     }
 }
@@ -144,7 +138,6 @@ void CmdPalette::textChanged()
     foreach(QChar c, ui->lineEdit->text())
         search += QString("(?:.*\\b)?(%1)").arg(c);
     search += "(?:.*)";
-    qDebug()<<search;
 
     // Set filter
     QRegExp regExp(search, Qt::CaseInsensitive, QRegExp::RegExp);
@@ -173,11 +166,7 @@ void CmdPalette::closeEvent(QCloseEvent *event)
 
 void CmdPalette::keyPressEvent(QKeyEvent *event)
 {
-    if (event->nativeVirtualKey() == VK_ESCAPE)
-    {
-        reset();
-    }
-    else if (event->nativeVirtualKey() == VK_RETURN)
+    if (event->nativeVirtualKey() == VK_RETURN)
     {
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
     }

@@ -180,6 +180,9 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
             <pointsize>11</pointsize>
            </font>
           </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="horizontalScrollBarPolicy">
            <enum>Qt::ScrollBarAlwaysOff</enum>
           </property>

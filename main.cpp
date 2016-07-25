@@ -2,6 +2,10 @@
 #include <QApplication>
 #include <QSettings>
 #include <QProcess>
+#include <QDateTime>
+#include <QTextStream>
+#include <QFile>
+#include <Windows.h>
 
 #define REG_RUN "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
 
@@ -21,8 +25,52 @@ void setAutoStartEnabled(bool enabled)
     delete settings;
 }
 
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    static QFile *logFile = nullptr;
+    if (logFile == nullptr)
+    {
+        WCHAR szAppFileName[MAX_PATH];
+        GetModuleFileName(NULL, szAppFileName, MAX_PATH);
+
+        QString &appFileDirName = QString::fromWCharArray(szAppFileName).replace("\\", "/");
+        QString &appFileDir = appFileDirName.left(appFileDirName.lastIndexOf("/"));
+        QString logName = appFileDir + "/"
+                + QDateTime::currentDateTime().toString("MMddyyyy_hhmmss")
+                + ".log";
+        logFile = new QFile(logName);
+        if (!logFile->open(QFile::ReadWrite))
+        {
+            delete logFile;
+            return;
+        }
+    }
+
+    QTextStream ts(logFile);
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type) {
+    case QtDebugMsg:
+        ts<<"[Debug]: "<<localMsg.constData()<<"\r\n";
+        break;
+    case QtInfoMsg:
+        ts<<"[Info]: "<<localMsg.constData()<<"\r\n";
+        break;
+    case QtWarningMsg:
+        ts<<"[Warning]: "<<localMsg.constData()<<"\r\n";
+        break;
+    case QtCriticalMsg:
+        ts<<"[Critical]: "<<localMsg.constData()<<"\r\n";
+        break;
+    case QtFatalMsg:
+        ts<<"[Fatal]: "<<localMsg.constData()<<"\r\n";
+        abort();
+    }
+}
+
 int main(int argc, char *argv[])
 {
+    qInstallMessageHandler(myMessageOutput);
+
     QApplication a(argc, argv);
 
     QStringList &argl = a.arguments();
