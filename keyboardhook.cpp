@@ -219,16 +219,24 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
 KeyboardHook::KeyboardHook(QObject *parent) : QObject(parent)
 {
-    g_cmdPalette = new CmdPalette();
-    HHOOK keyboardHook = ::SetWindowsHookEx(WH_KEYBOARD_LL,
-                                            KbHookProc,
-                                            ::GetModuleHandle(NULL),
-                                            0);
+    // Turn off caps lock
+
     if (::GetKeyState(VK_CAPITAL) == 1)
     {
         SimulateKey(VK_CAPITAL, 1);
         SimulateKey(VK_CAPITAL, 0);
     }
+
+    // Create Command
+
+    g_cmdPalette = new CmdPalette();
+
+    // Install hook
+
+    HHOOK keyboardHook = ::SetWindowsHookEx(WH_KEYBOARD_LL,
+                                            KbHookProc,
+                                            ::GetModuleHandle(NULL),
+                                            0);
 }
 
 KeyboardHook::~KeyboardHook()

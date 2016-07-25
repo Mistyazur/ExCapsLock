@@ -134,27 +134,35 @@ void CmdPalette::autoUpdate()
 
 void CmdPalette::textChanged()
 {
+    QString &text = ui->lineEdit->text();
     QString search;
-    foreach(QChar c, ui->lineEdit->text())
-        search += QString("(?:.*\\b)?(%1)").arg(c);
+
+    for (int i = 0; i < text.length(); ++i)
+    {
+       if (i == 0)
+           // First char must be border
+           search += QString("(?:.*\\b)(%1)").arg(text.at(i));
+       else
+           // char can be border or next to previous char
+           search += QString("(?:.*\\b)?(%1)").arg(text.at(i));
+    }
     search += "(?:.*)";
 
     // Set filter
+
     QRegExp regExp(search, Qt::CaseInsensitive, QRegExp::RegExp);
     m_proxyModel->setFilterRegExp(regExp);
 
     // Set highlight and sort by keyword
-//    emit searchChanged(ui->lineEdit->text());
+
     emit searchChanged(search);
 
-//    // Update to make highlight effect
-//    ui->listView->update();
+    // Update to make highlight effect
 
-    // Sort to make affect
-    m_proxyModel->sort(-1, Qt::AscendingOrder);
-    m_proxyModel->sort(0, Qt::AscendingOrder);
+    ui->listView->update();
 
     // Select first item
+
     ui->listView->selectionModel()->setCurrentIndex(m_proxyModel->index(0, 0), QItemSelectionModel::ClearAndSelect);
 }
 
