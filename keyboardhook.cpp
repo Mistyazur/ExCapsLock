@@ -128,11 +128,14 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     {
         if (wParam == WM_KEYDOWN)
         {
-            bCompositeKey = false;
-            keySeq += VK_CAPITAL;
-
             // Reset time to calculate time elapsed
-            tCLHold.isValid() ? tCLHold.restart() : tCLHold.start();
+            if (keySeq.isEmpty())
+                tCLHold.isValid() ? tCLHold.restart() : tCLHold.start();
+
+            // Set false to check whether composite key
+            bCompositeKey = false;
+
+            keySeq += VK_CAPITAL;
         }
         else if (wParam == WM_KEYUP)
         {
@@ -141,15 +144,21 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
                 // Esc simulation when Caps Lock hold less than 500 msec
                 // Enter simulation when Caps Lock hold more than 500 msec
 
-                if (tCLHold.elapsed() < 500)
+                int elapsed = tCLHold.elapsed();
+                if (elapsed < 500)
                 {
                     SimulateKey(VK_ESCAPE, 1);
                     SimulateKey(VK_ESCAPE, 0);
                 }
-                else
+                else if (elapsed < 3000)
                 {
                     SimulateKey(VK_RETURN, 1);
                     SimulateKey(VK_RETURN, 0);
+                }
+                else
+                {
+                    SimulateKey(VK_CAPITAL, 1);
+                    SimulateKey(VK_CAPITAL, 0);
                 }
             }
 
