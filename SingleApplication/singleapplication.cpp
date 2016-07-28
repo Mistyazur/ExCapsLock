@@ -58,7 +58,7 @@ void SingleApplication::initLocalConnection()
 void SingleApplication::newLocalServer()
 {
     m_localServer = new QLocalServer(this);
-    connect(m_localServer, SIGNAL(newConnection()), this, SLOT(newLocalConnection()));
+    connect(m_localServer, &QLocalServer::newConnection, this, &SingleApplication::newLocalConnection);
     if(!m_localServer->listen(m_serverName))
     {
         if(m_localServer->serverError() == QAbstractSocket::AddressInUseError) {
