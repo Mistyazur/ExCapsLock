@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -56,6 +56,7 @@ RESOURCES += \
 
 LIBS += -lUser32 -lAdvapi32 -lPowrProf -lUserenv -lWtsapi32
 
+include(SingleApplication/SingleApplication.pri)
 include(JSettings/JSettings.pri)
 include(Singleton/Singleton.pri)
 include(WMI/WMI.pri)

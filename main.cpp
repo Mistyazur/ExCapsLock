@@ -1,5 +1,5 @@
 #include "keyboardhook.h"
-#include <QApplication>
+#include "singleapplication.h"
 #include <QSettings>
 #include <QProcess>
 #include <QDateTime>
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 {
     qInstallMessageHandler(myMessageOutput);
 
-    QApplication a(argc, argv);
+    SingleApplication a(argc, argv);
 
     QStringList &argl = a.arguments();
     if (argl.count() >= 2)
@@ -85,11 +85,15 @@ int main(int argc, char *argv[])
            QProcess::startDetached(QString("SCHTASKS /CREATE /TN \"ExCapsLock\" /TR \"%1\" /SC ONLOGON /RL Highest /F").arg(QApplication::applicationFilePath()));
        else if (arg.compare("/us", Qt::CaseInsensitive) == 0)
            QProcess::startDetached("SCHTASKS /DELETE /TN \"ExCapsLock\" /F");
-
-       return 0;
+    }
+    else
+    {
+        if (!a.isRunning())
+        {
+            KeyboardHook kh;
+            return a.exec();
+        }
     }
 
-    KeyboardHook kh;
-
-    return a.exec();
+    return 0;
 }

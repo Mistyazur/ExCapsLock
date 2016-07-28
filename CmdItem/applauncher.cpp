@@ -4,6 +4,7 @@
 #include <Wtsapi32.h>
 #include <UserEnv.h>
 #include <QProcess>
+#include <QDebug>
 
 AppLauncher::AppLauncher(const QString &text, const QString &path, QObject *parent) :
     CmdItem(text, parent), m_path(path)
@@ -18,9 +19,17 @@ bool AppLauncher::exec()
     if(Wow64DisableWow64FsRedirection(&OldValue))
     {
 #endif
-        QString path = "\"" + m_path + "\"";
-        if (!path.isEmpty())
+        if (!m_path.isEmpty())
+        {
+            QString path = "\"" + m_path + "\"";
             return QProcess::startDetached(path);
+
+//            QString path = "\"" + m_path + "\"";
+//            path.replace("/", "\\");
+//            WCHAR szProcess[MAX_PATH] = {};
+//            path.toWCharArray(szProcess);
+//            return executeAsActiveUser(szProcess);
+        }
 #ifndef _M_X64
         Wow64RevertWow64FsRedirection(OldValue);
     }
@@ -36,14 +45,11 @@ const QString AppLauncher::html(const QString &searchKeyword)
              .arg(m_path);
 }
 
-bool AppLauncher::executeAsActiveUser(const QString &process)
+bool AppLauncher::executeAsActiveUser(wchar_t *szProcess)
 {
-    // Get active user token.
-
-    uint dwSessionId = WTSGetActiveConsoleSessionId();
-    HANDLE hToken = NULL;
-    if (!WTSQueryUserToken(dwSessionId, &hToken))
-        return FALSE;
+    bool bResult = false;
+    STARTUPINFO si = {0};
+    PROCESS_INFORMATION pi = {0};
 
     // Security attibute structure used in DuplicateTokenEx and CreateProcessAsUser
     // I would prefer to not have to use a security attribute variable and to just
@@ -54,35 +60,33 @@ bool AppLauncher::executeAsActiveUser(const QString &process)
     SECURITY_ATTRIBUTES sa = {0};
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 
+    // Get active user token.
+
+    uint dwSessionId = WTSGetActiveConsoleSessionId();
+    HANDLE hActiveUserToken = NULL;
+    if (!WTSQueryUserToken(dwSessionId, &hActiveUserToken))
+        goto CLEANUP;
+
     // Copy the access token.
     // The newly created token will be a primary token.
 
-    HANDLE hUserTokenDup = NULL;
-    if (!DuplicateTokenEx(hToken, MAXIMUM_ALLOWED, &sa, SecurityIdentification, TokenPrimary, &hUserTokenDup))
-    {
-        CloseHandle(hToken);
-        return FALSE;
-    }
+    HANDLE hActiveUserTokenDup = NULL;
+    if (!DuplicateTokenEx(hActiveUserToken, MAXIMUM_ALLOWED, &sa, SecurityIdentification, TokenPrimary, &hActiveUserTokenDup))
+        goto CLEANUP;
 
     // Create environment block.
 
-    LPVOID envBlock = NULL;
-    if (!CreateEnvironmentBlock(&envBlock, hUserTokenDup, false))
-    {
-        CloseHandle(hToken);
-        CloseHandle(hUserTokenDup);
-        return FALSE;
-    }
+    LPVOID activeUserEnvBlock = NULL;
+    if (!CreateEnvironmentBlock(&activeUserEnvBlock, hActiveUserTokenDup, false))
+        goto CLEANUP;
 
     // By default CreateProcessAsUser creates a process on a non-interactive window station, meaning
     // the window station has a desktop that is invisible and the process is incapable of receiving
     // user input. To remedy this we set the lpDesktop parameter to indicate we want to enable user
     // interaction with the new process.
 
-    STARTUPINFO si = {0};
     si.cb = sizeof(STARTUPINFO);
     si.lpDesktop = (LPWSTR)TEXT("winsta0\\default"); // interactive window station parameter; basically this indicates that the process created can display a GUI on the desktop
-    PROCESS_INFORMATION pi = {0};
 
     // Flags that specify the priority and creation method of the process.
 
@@ -90,26 +94,27 @@ bool AppLauncher::executeAsActiveUser(const QString &process)
 
     // Create a new process in the current user's logon session.
 
-    WCHAR szProcess[MAX_PATH] = {};
-    process.toWCharArray(szProcess);
-    bool result = CreateProcessAsUser(hUserTokenDup,
+    bResult = CreateProcessAsUser(hActiveUserTokenDup,
                                       NULL,
                                       szProcess,
                                       &sa,
                                       &sa,
                                       FALSE,
                                       dwCreationFlags,
-                                      envBlock,
+                                      activeUserEnvBlock,
                                       NULL,
                                       &si,
                                       &pi
                                       );
+CLEANUP:
+    if (hActiveUserToken != NULL)
+        CloseHandle(hActiveUserToken);
 
-    // Invalidate the handles.
+    if (hActiveUserTokenDup != NULL)
+        CloseHandle(hActiveUserTokenDup);
 
-    CloseHandle(hToken);
-    CloseHandle(hUserTokenDup);
-    DestroyEnvironmentBlock(envBlock);
+    if (activeUserEnvBlock != NULL)
+        DestroyEnvironmentBlock(activeUserEnvBlock);
 
     return TRUE;
 }
