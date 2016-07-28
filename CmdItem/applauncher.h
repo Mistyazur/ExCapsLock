@@ -12,6 +12,8 @@ public:
     const QString html(const QString &searchKeyword);
 private:
     QString m_path;
+
+    bool executeAsActiveUser(const QString &process);
 };
 
 #endif // APPLAUNCHER_H

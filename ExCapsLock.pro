@@ -54,7 +54,7 @@ FORMS    += cmd.ui
 RESOURCES += \
     resource.qrc
 
-LIBS += -lUser32 -lAdvapi32 -lPowrProf
+LIBS += -lUser32 -lAdvapi32 -lPowrProf -lUserenv -lWtsapi32
 
 include(JSettings/JSettings.pri)
 include(Singleton/Singleton.pri)

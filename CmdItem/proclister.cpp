@@ -69,6 +69,9 @@ void ProcLister::autoUpdate()
             if (NULL != hProcess) {
 
                 QString &caption = QString::fromWCharArray(pe32.szExeFile);
+                if (caption.endsWith(".exe", Qt::CaseInsensitive))
+                    caption.chop(4);
+
                 QStringList infoList;
                 infoList += QString::number(pe32.th32ProcessID);
                 infoList += user(hProcess);
