@@ -24,11 +24,12 @@ bool AppLauncher::exec()
             QString path = "\"" + m_path + "\"";
             return QProcess::startDetached(path);
 
-//            QString path = "\"" + m_path + "\"";
-//            path.replace("/", "\\");
-//            WCHAR szProcess[MAX_PATH] = {};
-//            path.toWCharArray(szProcess);
-//            return executeAsActiveUser(szProcess);
+//            QString cmd = "\"" + m_path + "\"";
+//            cmd.replace("/", "\\");
+//            cmd = "cmd.exe /c start " + cmd;
+//            WCHAR szCmd[1024] = {};
+//            path.toWCharArray(cmd);
+//            return executeAsActiveUser(cmd);
         }
 #ifndef _M_X64
         Wow64RevertWow64FsRedirection(OldValue);
@@ -45,39 +46,30 @@ const QString AppLauncher::html(const QString &searchKeyword)
              .arg(m_path);
 }
 
-bool AppLauncher::executeAsActiveUser(wchar_t *szProcess)
+bool AppLauncher::executeAsActiveUser(wchar_t *szCmd)
 {
     bool bResult = false;
     STARTUPINFO si = {0};
     PROCESS_INFORMATION pi = {0};
-
-    // Security attibute structure used in DuplicateTokenEx and CreateProcessAsUser
-    // I would prefer to not have to use a security attribute variable and to just
-    // simply pass null and inherit (by default) the security attributes
-    // of the existing token. However, in C# structures are value types and therefore
-    // cannot be assigned the null value.
-
     SECURITY_ATTRIBUTES sa = {0};
-    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+    HANDLE hActiveUserToken = NULL;
+    HANDLE hActiveUserTokenDup = NULL;
+    LPVOID hActiveUserEnvBlock = NULL;
 
     // Get active user token.
 
-    uint dwSessionId = WTSGetActiveConsoleSessionId();
-    HANDLE hActiveUserToken = NULL;
-    if (!WTSQueryUserToken(dwSessionId, &hActiveUserToken))
+    if (!WTSQueryUserToken(WTSGetActiveConsoleSessionId(), &hActiveUserToken))
         goto CLEANUP;
 
     // Copy the access token.
     // The newly created token will be a primary token.
 
-    HANDLE hActiveUserTokenDup = NULL;
     if (!DuplicateTokenEx(hActiveUserToken, MAXIMUM_ALLOWED, &sa, SecurityIdentification, TokenPrimary, &hActiveUserTokenDup))
         goto CLEANUP;
 
     // Create environment block.
 
-    LPVOID activeUserEnvBlock = NULL;
-    if (!CreateEnvironmentBlock(&activeUserEnvBlock, hActiveUserTokenDup, false))
+    if (!CreateEnvironmentBlock(&hActiveUserEnvBlock, hActiveUserTokenDup, false))
         goto CLEANUP;
 
     // By default CreateProcessAsUser creates a process on a non-interactive window station, meaning
@@ -88,6 +80,14 @@ bool AppLauncher::executeAsActiveUser(wchar_t *szProcess)
     si.cb = sizeof(STARTUPINFO);
     si.lpDesktop = (LPWSTR)TEXT("winsta0\\default"); // interactive window station parameter; basically this indicates that the process created can display a GUI on the desktop
 
+    // Security attibute structure used in DuplicateTokenEx and CreateProcessAsUser
+    // I would prefer to not have to use a security attribute variable and to just
+    // simply pass null and inherit (by default) the security attributes
+    // of the existing token. However, in C# structures are value types and therefore
+    // cannot be assigned the null value.
+
+    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+
     // Flags that specify the priority and creation method of the process.
 
     int dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NEW_CONSOLE | CREATE_UNICODE_ENVIRONMENT;
@@ -96,12 +96,12 @@ bool AppLauncher::executeAsActiveUser(wchar_t *szProcess)
 
     bResult = CreateProcessAsUser(hActiveUserTokenDup,
                                       NULL,
-                                      szProcess,
+                                      szCmd,
                                       &sa,
                                       &sa,
                                       FALSE,
                                       dwCreationFlags,
-                                      activeUserEnvBlock,
+                                      hActiveUserEnvBlock,
                                       NULL,
                                       &si,
                                       &pi
@@ -113,8 +113,8 @@ CLEANUP:
     if (hActiveUserTokenDup != NULL)
         CloseHandle(hActiveUserTokenDup);
 
-    if (activeUserEnvBlock != NULL)
-        DestroyEnvironmentBlock(activeUserEnvBlock);
+    if (hActiveUserEnvBlock != NULL)
+        DestroyEnvironmentBlock(hActiveUserEnvBlock);
 
     return TRUE;
 }

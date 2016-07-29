@@ -13,7 +13,7 @@ public:
 private:
     QString m_path;
 
-    bool executeAsActiveUser(wchar_t *szProcess);
+    bool executeAsActiveUser(wchar_t *szCmd);
 };
 
 #endif // APPLAUNCHER_H
