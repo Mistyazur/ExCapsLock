@@ -9,10 +9,7 @@ class AppLister : public CmdItem
 public:
     AppLister(const QString &text, QObject *parent = 0);
     bool exec();
-public slots:
-    void updateApps(const QStringList &apps);
 private:
-    QStringList m_appList;
 };
 
 #endif // APPLISTER_H

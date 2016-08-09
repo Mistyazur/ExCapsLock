@@ -8,7 +8,6 @@
 #include <QTimer>
 #include <QDebug>
 
-#define KEY_APP_PATH	"run.app.path"
 
 AppRegister::AppRegister(const QString &text, QObject *parent) :
     CmdItem(text, parent)
@@ -43,8 +42,6 @@ void AppRegister::load()
         Wow64RevertWow64FsRedirection(OldValue);
     }
 #endif
-
-    emit updateApps(m_processList);
 }
 
 bool AppRegister::capture()
@@ -66,7 +63,6 @@ bool AppRegister::capture()
                 if (!m_processList.contains(process))
                 {
                     m_processList += process;
-                    emit updateApps(m_processList);
 
                     JSettings settings(USER_SETTINGS);
                     settings.remove(KEY_APP_PATH);
