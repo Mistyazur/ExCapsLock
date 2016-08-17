@@ -3,7 +3,6 @@
 #include <Windows.h>
 #include <Wtsapi32.h>
 #include <UserEnv.h>
-#include <QProcess>
 #include <QDebug>
 
 AppLauncher::AppLauncher(const QString &text, const QString &path, QObject *parent) :
@@ -21,15 +20,12 @@ bool AppLauncher::exec()
 #endif
         if (!m_path.isEmpty())
         {
-            QString path = "\"" + m_path + "\"";
-            return QProcess::startDetached(path);
-
-//            QString cmd = "\"" + m_path + "\"";
-//            cmd.replace("/", "\\");
-//            cmd = "cmd.exe /c start " + cmd;
-//            WCHAR szCmd[1024] = {};
-//            path.toWCharArray(cmd);
-//            return executeAsActiveUser(cmd);
+            QString cmd = "\"" + m_path + "\"";
+            cmd.replace("/", "\\");
+            cmd = /*"cmd.exe /c start " + */cmd;
+            WCHAR szCmd[1024] = {};
+            cmd.toWCharArray(szCmd);
+            return executeAsActiveUser(szCmd);
         }
 #ifndef _M_X64
         Wow64RevertWow64FsRedirection(OldValue);
