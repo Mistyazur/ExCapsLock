@@ -49,8 +49,6 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     ProcLister *procList = new ProcLister("Process: Kill", this);
     winLister *winList = new winLister("Window: Switch");
 
-    connect(appNew, &AppRegister::updateApps, appList, &AppLister::updateApps);
-
     addItemToSourceModel(powerSleep);
     addItemToSourceModel(powerHibernate);
     addItemToSourceModel(powerShutDown);

@@ -9,8 +9,6 @@ class AppRegister : public CmdItem
 public:
     AppRegister(const QString &text , QObject *parent = nullptr);
     bool exec();
-signals:
-    void updateApps(const QStringList &apps);
 private:
     QStringList m_processList;
     void load();
