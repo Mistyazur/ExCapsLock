@@ -1,9 +1,12 @@
 #include "applauncher.h"
 #include "cmditemdelegate.h"
+
+#include <QProcess>
+
 #include <Windows.h>
 #include <Wtsapi32.h>
 #include <UserEnv.h>
-#include <QDebug>
+
 
 AppLauncher::AppLauncher(const QString &text, const QString &path, QObject *parent) :
     CmdItem(text, parent), m_path(path)
@@ -22,10 +25,13 @@ bool AppLauncher::exec()
         {
             QString cmd = "\"" + m_path + "\"";
             cmd.replace("/", "\\");
-            cmd = /*"cmd.exe /c start " + */cmd;
-            WCHAR szCmd[1024] = {};
-            cmd.toWCharArray(szCmd);
-            return executeAsActiveUser(szCmd);
+//            cmd = "cmd.exe /c start " + cmd;
+
+//            WCHAR szCmd[1024] = {};
+//            cmd.toWCharArray(szCmd);
+//            return executeAsActiveUser(szCmd);
+
+            return QProcess::startDetached(cmd);
         }
 #ifndef _M_X64
         Wow64RevertWow64FsRedirection(OldValue);
