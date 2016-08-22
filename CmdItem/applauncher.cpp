@@ -27,11 +27,11 @@ bool AppLauncher::exec()
             cmd.replace("/", "\\");
 //            cmd = "cmd.exe /c start " + cmd;
 
-//            WCHAR szCmd[1024] = {};
-//            cmd.toWCharArray(szCmd);
-//            return executeAsActiveUser(szCmd);
+            WCHAR szCmd[1024] = {};
+            cmd.toWCharArray(szCmd);
+            return executeAsActiveUser(szCmd);
 
-            return QProcess::startDetached(cmd);
+//            return QProcess::startDetached(cmd);
         }
 #ifndef _M_X64
         Wow64RevertWow64FsRedirection(OldValue);
