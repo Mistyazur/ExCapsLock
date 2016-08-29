@@ -49,6 +49,7 @@ void ProcLister::autoUpdate()
 
     // Take a snapshot of all processes in the system.
 
+    QHash<int ,QString> processHash;
     HANDLE hProcessSnap;
     PROCESSENTRY32 pe32 = { };
     pe32.dwSize = sizeof(PROCESSENTRY32);
@@ -61,45 +62,57 @@ void ProcLister::autoUpdate()
     {
         int index = 0;
         do {
-
-            // Open process to query infomation.
-
-            HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-                                            FALSE, pe32.th32ProcessID);
-            if (NULL != hProcess) {
-
-                QString &caption = QString::fromWCharArray(pe32.szExeFile);
-                if (caption.endsWith(".exe", Qt::CaseInsensitive))
-                    caption.chop(4);
-
-                QStringList infoList;
-                infoList += QString::number(pe32.th32ProcessID);
-                infoList += user(hProcess);
-                infoList += QString::number(cpuUsage(hProcess, pe32.th32ProcessID, timeDelta));
-                infoList += QString::number(memoryUsage(hProcess)/1024) + " K";
-
-                if (m_resultModel->item(index))
-                {
-                    m_resultModel->item(index)->setText(caption);
-                    ((ProcKiller *)m_resultModel->item(index))->setInfo(infoList);
-                }
-                else
-                {
-                    m_resultModel ->setItem(index, new ProcKiller(caption));
-                    ((ProcKiller *)m_resultModel->item(index))->setInfo(infoList);
-                }
-                ++index;
-
-                ::CloseHandle(hProcess);
-            }
-
+            processHash.insert(pe32.th32ProcessID, QString::fromWCharArray(pe32.szExeFile));
         } while (::Process32Next(hProcessSnap, &pe32));
     }
 
     ::CloseHandle(hProcessSnap);
+
+    // Update process information
+
+    for (int i = 0 ; i < m_resultModel->rowCount(); ++i) {
+        ProcKiller *pProcKiller = ((ProcKiller *)m_resultModel->item(i));
+        if (pProcKiller) {
+            int pid = pProcKiller->pid();
+            HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+                                            FALSE, pid);
+            if (NULL != hProcess) {
+                pProcKiller->setCpu(getProcessCpu(hProcess, timeDelta));
+                pProcKiller->setMem(getProcessMem(hProcess));
+                processHash.remove(pid);
+
+                ::CloseHandle(hProcess);
+            } else {
+                m_resultModel->removeRow(i--);
+            }
+        }
+    }
+
+    // Add new process infomation
+
+    QHash<int, QString>::const_iterator it = processHash.constBegin();
+    while (it != processHash.constEnd()) {
+        HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+                                        FALSE, it.key());
+        if (NULL != hProcess) {
+            QString nameWithoutExt = it.value();
+            nameWithoutExt = nameWithoutExt.left(nameWithoutExt.lastIndexOf("."));
+            ProcKiller *pProcKiller = new ProcKiller(nameWithoutExt, this);
+            pProcKiller->setName(it.value());
+            pProcKiller->setUser(getProcessUser(hProcess));
+            pProcKiller->setPid(it.key());
+            pProcKiller->setCpu(getProcessCpu(hProcess, timeDelta));
+            pProcKiller->setMem(getProcessMem(hProcess));
+            m_resultModel->appendRow(pProcKiller);
+
+            ::CloseHandle(hProcess);
+        }
+
+        ++it;
+    }
 }
 
-QString ProcLister::user(HANDLE hProcess)
+QString ProcLister::getProcessUser(HANDLE hProcess)
 {
     QString user;
     DWORD dwSize = 0;
@@ -149,9 +162,13 @@ Cleanup:
     return user;
 }
 
-LONG ProcLister::cpuUsage(HANDLE hProcess, LONG pid, LONGLONG timeDelta)
+LONG ProcLister::getProcessCpu(HANDLE hProcess, LONGLONG timeDelta)
 {
     LONG nCpu = -1;
+    LONG pid = ::GetProcessId(hProcess);
+
+    if (timeDelta == 0)
+        return nCpu;
 
     // Get count of cpu.
 
@@ -165,7 +182,7 @@ LONG ProcLister::cpuUsage(HANDLE hProcess, LONG pid, LONGLONG timeDelta)
 
     // Get previous cpu time of the specified process
 
-    static QHash<LONG, LONGLONG> prevCpuTimeHash = QHash<LONG, LONGLONG>();
+    static QHash<LONG, LONGLONG> prevCpuTimeHash;
     LONGLONG prevCpuTime;
 
     if (prevCpuTimeHash.contains(pid)) {
@@ -187,14 +204,12 @@ LONG ProcLister::cpuUsage(HANDLE hProcess, LONG pid, LONGLONG timeDelta)
         // We don't assert here because in some cases (such as in the Task Manager)
         // we may call this function on a process that has just exited but we have
         // not yet received the notification.
-        return -1;
+        return nCpu;
     }
 
     cpuTime = (((PLARGE_INTEGER)(&kernelTime))->QuadPart + ((PLARGE_INTEGER)(&userTime))->QuadPart) / nProcessor;
 
-    if (prevCpuTime == 0) {
-        nCpu = -1;
-    } else {
+    if (prevCpuTime != 0) {
         cpuTimeDelta = cpuTime - prevCpuTime;
         nCpu = ((cpuTimeDelta * 100 + timeDelta / 2) / timeDelta);
     }
@@ -207,14 +222,14 @@ LONG ProcLister::cpuUsage(HANDLE hProcess, LONG pid, LONGLONG timeDelta)
     return nCpu;
 }
 
-LONGLONG ProcLister::memoryUsage(HANDLE hProcess)
+LONGLONG ProcLister::getProcessMem(HANDLE hProcess)
 {
     LONGLONG workSetPrivate = 0;
     PBYTE pByte = NULL;
 
     PERFORMANCE_INFORMATION performanceInfo = {};
     if(!::GetPerformanceInfo(&performanceInfo, sizeof(performanceInfo)))
-        return 0;
+        return -1;
 
     PSAPI_WORKING_SET_INFORMATION workSetInfo = {};
     PSAPI_WORKING_SET_BLOCK *pWorkSetBlock = workSetInfo.WorkingSetInfo;

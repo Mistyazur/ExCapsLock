@@ -15,9 +15,9 @@ public:
     bool isAutoUpdate();
 public slots:
 private:
-    QString user(HANDLE hProcess);
-    LONG cpuUsage(HANDLE hProcess, LONG pid, LONGLONG timeDelta);
-    LONGLONG memoryUsage(HANDLE hProcess);
+    QString		getProcessUser(HANDLE hProcess);
+    LONG 		getProcessCpu(HANDLE hProcess, LONGLONG timeDelta);
+    LONGLONG 	getProcessMem(HANDLE hProcess);
 };
 
 #endif // PROCLISTER_H

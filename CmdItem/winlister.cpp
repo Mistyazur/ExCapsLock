@@ -63,14 +63,11 @@ bool winLister::exec()
                 QString &title = QString::fromWCharArray(szTitle);
                 if (title.isEmpty())
                     title = "None";
-                QStringList infoList;
-                infoList += title;
-                infoList += QString::number((LONGLONG)hWnd, 16);
 
-                if (processName.endsWith(".exe", Qt::CaseInsensitive))
-                    processName.chop(4);
+                processName = processName.left(processName.lastIndexOf("."));
                 m_resultModel->setItem(index, new WinControllor(processName, this));
-                ((WinControllor *)m_resultModel->item(index))->setInfo(infoList);
+                ((WinControllor *)m_resultModel->item(index))->setTitle(title);
+                ((WinControllor *)m_resultModel->item(index))->setId(hWnd);
 
                 ++index;
             }

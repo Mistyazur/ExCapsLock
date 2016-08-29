@@ -22,7 +22,7 @@ bool AppLister::exec()
         {
             QRegExp rx("/(.+)\\.exe", Qt::CaseInsensitive, QRegExp::RegExp);
             if (rx.lastIndexIn(app) != -1)
-                m_resultModel->setItem(index, new AppLauncher(rx.cap(1), app));
+                m_resultModel->setItem(index, new AppLauncher(rx.cap(1), app, this));
         }
     }
 

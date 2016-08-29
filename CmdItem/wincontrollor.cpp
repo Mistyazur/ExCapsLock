@@ -10,22 +10,15 @@ WinControllor::WinControllor(const QString &text, QObject *parent) :
 
 bool WinControllor::exec()
 {
-    HWND hWnd = (HWND)m_infoList.last().toLongLong(nullptr, 16);
-
-    bringToFront(hWnd);
+    bringToFront(m_id);
 
     return true;
-}
-
-void WinControllor::setInfo(const QStringList &infoList)
-{
-    m_infoList = infoList;
 }
 
 const QString WinControllor::html(const QString &searchKeyword)
 {
     return QString("<h6>%1</h6><p>%2</p>")
-            .arg(m_infoList.first())
+            .arg(m_title)
             .arg(highlight(text(), searchKeyword));
 }
 
