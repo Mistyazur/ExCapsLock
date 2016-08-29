@@ -29,7 +29,7 @@ bool AppLauncher::exec()
 
             WCHAR szCmd[1024] = {};
             cmd.toWCharArray(szCmd);
-            return executeAsActiveUser(szCmd);
+            return runAsActiveUser(szCmd);
 
 //            return QProcess::startDetached(cmd);
         }
@@ -48,7 +48,7 @@ const QString AppLauncher::html(const QString &searchKeyword)
              .arg(m_path);
 }
 
-bool AppLauncher::executeAsActiveUser(wchar_t *szCmd)
+bool AppLauncher::runAsActiveUser(wchar_t *szCmd)
 {
     bool bResult = false;
     STARTUPINFO si = {0};

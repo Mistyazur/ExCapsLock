@@ -224,18 +224,12 @@ LONGLONG ProcLister::memoryUsage(HANDLE hProcess)
             pByte = new BYTE[requiredSize]{0};
             pWorkSetBlock = (PSAPI_WORKING_SET_BLOCK *)(pByte + sizeof(workSetInfo.NumberOfEntries));
             if(!::QueryWorkingSet(hProcess, pByte, requiredSize))
-            {
                 goto Cleanup;
-            }
-        }
-        else
-        {
+        } else
             goto Cleanup;
-        }
     }
 
-    for (ULONG_PTR i = 0; i < workSetInfo.NumberOfEntries; ++i)
-    {
+    for (ULONG_PTR i = 0; i < workSetInfo.NumberOfEntries; ++i) {
         if(!pWorkSetBlock[i].Shared)
             workSetPrivate += performanceInfo.PageSize;
     }
@@ -243,6 +237,7 @@ LONGLONG ProcLister::memoryUsage(HANDLE hProcess)
 Cleanup:
     if (pByte)
         delete[] pByte;
+
     CloseHandle(hProcess);
 
     return workSetPrivate;
