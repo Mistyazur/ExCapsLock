@@ -28,41 +28,41 @@ void setAutoStartEnabled(bool enabled)
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     static QFile *logFile = nullptr;
-    if (logFile == nullptr)
-    {
+    if (logFile == nullptr) {
         WCHAR szAppFileName[MAX_PATH];
         GetModuleFileName(NULL, szAppFileName, MAX_PATH);
 
         QString &appFileDirName = QString::fromWCharArray(szAppFileName).replace("\\", "/");
         QString &appFileDir = appFileDirName.left(appFileDirName.lastIndexOf("/"));
         QString logName = appFileDir + "/"
-                + QDateTime::currentDateTime().toString("MMddyyyy_hhmmss")
+                + QCoreApplication::applicationName()
+                + QDateTime::currentDateTime().toString("_MMddyyyy-hhmmss")
                 + ".log";
         logFile = new QFile(logName);
-        if (!logFile->open(QFile::ReadWrite))
-        {
+        if (!logFile->open(QFile::ReadWrite)) {
             delete logFile;
             return;
         }
     }
 
     QTextStream ts(logFile);
-    QByteArray localMsg = msg.toLocal8Bit();
+    QByteArray &localMsg = msg.toLocal8Bit();
+    QString &logTime = QDateTime::currentDateTime().toString("[MM/dd hh:mm:ss.zzz]");
     switch (type) {
     case QtDebugMsg:
-        ts<<"[Debug]: "<<localMsg.constData()<<"\r\n";
+        ts<<"[D]"<<logTime<<" "<<localMsg.constData()<<"\r\n";
         break;
     case QtInfoMsg:
-        ts<<"[Info]: "<<localMsg.constData()<<"\r\n";
+        ts<<"[I]: "<<logTime<<" "<<localMsg.constData()<<"\r\n";
         break;
     case QtWarningMsg:
-        ts<<"[Warning]: "<<localMsg.constData()<<"\r\n";
+        ts<<"[W]: "<<logTime<<" "<<localMsg.constData()<<"\r\n";
         break;
     case QtCriticalMsg:
-        ts<<"[Critical]: "<<localMsg.constData()<<"\r\n";
+        ts<<"[C]: "<<logTime<<" "<<localMsg.constData()<<"\r\n";
         break;
     case QtFatalMsg:
-        ts<<"[Fatal]: "<<localMsg.constData()<<"\r\n";
+        ts<<"[F]: "<<logTime<<" "<<localMsg.constData()<<"\r\n";
         abort();
     }
 }

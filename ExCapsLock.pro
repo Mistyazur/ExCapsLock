@@ -62,5 +62,5 @@ include(Singleton/Singleton.pri)
 include(WMI/WMI.pri)
 
 win32 {
-#QMAKE_LFLAGS += /MANIFESTUAC:\"level=\'requireAdministrator\' uiAccess=\'false\'\"
+QMAKE_LFLAGS += /MANIFESTUAC:\"level=\'requireAdministrator\' uiAccess=\'false\'\"
 }
