@@ -7,50 +7,9 @@
 #include <Wtsapi32.h>
 #include <UserEnv.h>
 
-
-AppLauncher::AppLauncher(const QString &text, const QString &path, QObject *parent) :
-    CmdItem(text, parent), m_path(path)
+static BOOL RunAsActiveUser(LPCWSTR lpszProcess)
 {
-
-}
-
-bool AppLauncher::exec()
-{
-#ifndef _M_X64
-    PVOID OldValue = NULL;
-    if(Wow64DisableWow64FsRedirection(&OldValue))
-    {
-#endif
-        if (!m_path.isEmpty())
-        {
-            QString cmd = "\"" + m_path + "\"";
-            cmd.replace("/", "\\");
-//            cmd = "cmd.exe /c start " + cmd;
-
-            WCHAR szCmd[1024] = {};
-            cmd.toWCharArray(szCmd);
-            return runAsActiveUser(szCmd);
-
-//            return QProcess::startDetached(cmd);
-        }
-#ifndef _M_X64
-        Wow64RevertWow64FsRedirection(OldValue);
-    }
-#endif
-
-    return false;
-}
-
-const QString AppLauncher::html(const QString &searchKeyword)
-{
-     return QString("<h6>%1</h6><p>%2</p>")
-             .arg(highlight(text(), searchKeyword))
-             .arg(m_path);
-}
-
-bool AppLauncher::runAsActiveUser(wchar_t *szCmd)
-{
-    bool bResult = false;
+    BOOL bResult = false;
     STARTUPINFO si = {0};
     PROCESS_INFORMATION pi = {0};
     SECURITY_ATTRIBUTES sa = {0};
@@ -96,6 +55,8 @@ bool AppLauncher::runAsActiveUser(wchar_t *szCmd)
 
     // Create a new process in the current user's logon session.
 
+    WCHAR szCmd[MAX_PATH];
+    wcscpy_s(szCmd, lpszProcess);
     bResult = CreateProcessAsUser(hActiveUserTokenDup,
                                       NULL,
                                       szCmd,
@@ -119,4 +80,46 @@ CLEANUP:
         DestroyEnvironmentBlock(hActiveUserEnvBlock);
 
     return TRUE;
+}
+
+AppLauncher::AppLauncher(const QString &text, const QString &path, bool runAsSystem, QObject *parent) :
+    CmdItem(text, parent),
+    m_path(path),
+    m_runAsSystem(runAsSystem)
+{
+
+}
+
+bool AppLauncher::exec()
+{
+#ifndef _M_X64
+    PVOID OldValue = NULL;
+    if(Wow64DisableWow64FsRedirection(&OldValue))
+    {
+#endif
+        if (!m_path.isEmpty())
+        {
+            QString cmd = "\"" + m_path + "\"";
+            cmd.replace("/", "\\");
+//            cmd = "cmd.exe /c start " + cmd;
+
+            if (m_runAsSystem) {
+                return QProcess::startDetached(cmd);
+            } else {
+                return RunAsActiveUser(cmd.toStdWString().c_str());
+            }
+        }
+#ifndef _M_X64
+        Wow64RevertWow64FsRedirection(OldValue);
+    }
+#endif
+
+    return false;
+}
+
+const QString AppLauncher::html(const QString &searchKeyword)
+{
+     return QString("<h6>%1</h6><p>%2</p>")
+             .arg(highlight(text(), searchKeyword))
+             .arg(m_path);
 }

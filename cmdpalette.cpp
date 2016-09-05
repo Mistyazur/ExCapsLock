@@ -44,7 +44,8 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     Power *powerShutDown = new Power("Power: Shut Down", 2, this);
     Power *powerRestart = new Power("Power: Restart", 3, this);
     Power *powerScreenSaver = new Power("Power: Screen Saver", 4, this);
-    AppLister *appList = new AppLister("App: Run", this);
+    AppLister *appLaunchAsUserLister = new AppLister("App: Run", false, this);
+    AppLister *appLaunchAsSystemLister = new AppLister("App: Run as system", true, this);
     AppRegister *appNew = new AppRegister("App: New", this);
     ProcLister *procList = new ProcLister("Process: Kill", this);
     winLister *winList = new winLister("Window: Switch");
@@ -54,7 +55,8 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     addItemToSourceModel(powerShutDown);
     addItemToSourceModel(powerRestart);
     addItemToSourceModel(powerScreenSaver);
-    addItemToSourceModel(appList);
+    addItemToSourceModel(appLaunchAsUserLister);
+    addItemToSourceModel(appLaunchAsSystemLister);
     addItemToSourceModel(appNew);
     addItemToSourceModel(procList);
     addItemToSourceModel(winList);
@@ -104,25 +106,21 @@ void CmdPalette::cmdActivate(const QModelIndex &index)
     m_currentItem = (CmdItem *)((QStandardItemModel *)m_proxyModel->sourceModel())->itemFromIndex(m_proxyModel->mapToSource(index));
     m_currentItem->exec();
 
-    if (m_currentItem->resultModel()->rowCount() > 0)
-    {
+    if (m_currentItem->resultModel()->rowCount() > 0) {
         ui->lineEdit->clear();
         updateCmdView(m_currentItem->resultModel());
 
         // Update every second if it's auto-updated
         if (m_currentItem->isAutoUpdate())
             m_autoUpdateTimer.start(1000);
-    }
-    else
-    {
+    } else {
         reset();
     }
 }
 
 void CmdPalette::autoUpdate()
 {
-    if (m_currentItem)
-    {
+    if (m_currentItem) {
         m_currentItem->autoUpdate();
 
         // Update list view
@@ -135,8 +133,7 @@ void CmdPalette::textChanged()
     QString &text = ui->lineEdit->text();
     QString search;
 
-    for (int i = 0; i < text.length(); ++i)
-    {
+    for (int i = 0; i < text.length(); ++i) {
        if (i == 0)
            // First char must be border
            search += QString("(?:.*\\b)(%1)").arg(text.at(i));
@@ -172,16 +169,11 @@ void CmdPalette::closeEvent(QCloseEvent *event)
 
 void CmdPalette::keyPressEvent(QKeyEvent *event)
 {
-    if (event->nativeVirtualKey() == VK_RETURN)
-    {
+    if (event->nativeVirtualKey() == VK_RETURN) {
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
-    }
-    else if (event->nativeVirtualKey() == VK_DOWN)
-    {
+    } else if (event->nativeVirtualKey() == VK_DOWN) {
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
-    }
-    else if (event->nativeVirtualKey() == VK_UP)
-    {
+    } else if (event->nativeVirtualKey() == VK_UP) {
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
     }
 }
