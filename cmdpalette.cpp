@@ -185,12 +185,10 @@ void CmdPalette::updateCmdView(QStandardItemModel *model)
             m_autoUpdateTimer.stop();
     } else {
         if (m_currCmdItem != prevCmdItem) {
-            if (m_currCmdItem->isAutoUpdate()) {
-                if (!m_autoUpdateTimer.isActive())
-                    m_autoUpdateTimer.start(UPDATE_INTERVAL);
-            } else
-                if (m_autoUpdateTimer.isActive())
-                    m_autoUpdateTimer.stop();
+            if (m_autoUpdateTimer.isActive())
+                m_autoUpdateTimer.stop();
+            if (m_currCmdItem->isAutoUpdate())
+                m_autoUpdateTimer.start(UPDATE_INTERVAL);
         }
     }
 

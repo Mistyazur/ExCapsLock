@@ -19,7 +19,7 @@ const QString WinControllor::html(const QString &searchKeyword)
 {
     return QString("<h6>%1</h6><p>%2</p>")
             .arg(m_title)
-            .arg(highlight(text(), searchKeyword));
+            .arg(highlight(m_process, searchKeyword));
 }
 
 void WinControllor::bringToFront(HWND hWnd)

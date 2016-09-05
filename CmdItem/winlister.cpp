@@ -19,12 +19,13 @@ bool winLister::exec()
 
     QHash<DWORD, QString> procIdNameHash;
     HANDLE hProcessSnap;
-    PROCESSENTRY32 pe32 = {sizeof(PROCESSENTRY32), };
+    PROCESSENTRY32 pe32 = {};
 
     hProcessSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (INVALID_HANDLE_VALUE == hProcessSnap)
         return false;
 
+    pe32.dwSize = sizeof(PROCESSENTRY32);
     if (::Process32First(hProcessSnap, &pe32))
     {
         do {
@@ -64,10 +65,11 @@ bool winLister::exec()
                 if (title.isEmpty())
                     title = "None";
 
-                processName = processName.left(processName.lastIndexOf("."));
-                m_resultModel->setItem(index, new WinControllor(processName, this));
-                ((WinControllor *)m_resultModel->item(index))->setTitle(title);
-                ((WinControllor *)m_resultModel->item(index))->setId(hWnd);
+                WinControllor *winCtrl = new WinControllor(processName.left(processName.lastIndexOf(".")), this);
+                winCtrl->setTitle(title);
+                winCtrl->setProcess(processName);
+                winCtrl->setId(hWnd);
+                m_resultModel->setItem(index, winCtrl);
 
                 ++index;
             }

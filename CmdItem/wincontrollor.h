@@ -15,12 +15,16 @@ public:
     const QString title() { return m_title; }
     void setTitle(const QString &title) { m_title = title; }
 
+    const QString process() { return m_process; }
+    void setProcess(const QString &process) { m_process = process; }
+
     const QString html(const QString &searchKeyword);
 
     static void bringToFront(HWND hWnd);
 private:
     HWND m_id;
     QString m_title;
+    QString m_process;
 };
 
 #endif // WINCONTROLLOR_H
