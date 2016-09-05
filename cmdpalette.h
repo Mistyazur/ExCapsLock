@@ -21,7 +21,7 @@ public:
     explicit CmdPalette(ShadowWidget *parent = 0);
     ~CmdPalette();
     void activate();
-    void reset();
+    void deactivate();
 signals:
     void searchChanged(QString search);
 public slots:
@@ -37,9 +37,8 @@ private:
     QStandardItemModel *m_stdModel;
     CmdItemSortFilterProxyModel *m_proxyModel;
     CmdItemDelegate *m_delegate;
-    CmdItem *m_currentItem;
+    CmdItem *m_currCmdItem;
 
-    void addItemToSourceModel(CmdItem *item);
     void updateCmdView(QStandardItemModel *model);
 };
 

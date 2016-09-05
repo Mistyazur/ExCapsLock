@@ -174,7 +174,7 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
         if (g_cmdPalette->isVisible())
         {
             if (wParam == WM_KEYUP)
-                g_cmdPalette->reset();
+                g_cmdPalette->deactivate();
 
             return true;
         }

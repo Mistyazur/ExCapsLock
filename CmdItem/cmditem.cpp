@@ -42,8 +42,7 @@ const QString CmdItem::highlight(QString source, const QString &search)
             {
                 int pos = rx.pos(i);
                 int len = rx.cap(i).length();
-                if (pos != -1)
-                {
+                if (pos != -1) {
                     source.replace(pos, len, QString("<hl>%1</hl>").arg(source.mid(pos, len)));
                 }
             }

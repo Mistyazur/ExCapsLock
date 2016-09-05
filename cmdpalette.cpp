@@ -11,11 +11,13 @@
 #include <QPainter>
 #include <Windows.h>
 
+#define UPDATE_INTERVAL	1000
+
 CmdPalette::CmdPalette(ShadowWidget *parent) :
     ShadowWidget(parent),
     ui(new Ui::Cmd)
 {
-    m_currentItem = nullptr;
+    m_currCmdItem = nullptr;
 
     // Set window attributes
 
@@ -50,16 +52,17 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     ProcLister *procList = new ProcLister("Process: Kill", this);
     winLister *winList = new winLister("Window: Switch");
 
-    addItemToSourceModel(powerSleep);
-    addItemToSourceModel(powerHibernate);
-    addItemToSourceModel(powerShutDown);
-    addItemToSourceModel(powerRestart);
-    addItemToSourceModel(powerScreenSaver);
-    addItemToSourceModel(appLaunchAsUserLister);
-    addItemToSourceModel(appLaunchAsSystemLister);
-    addItemToSourceModel(appNew);
-    addItemToSourceModel(procList);
-    addItemToSourceModel(winList);
+    int index = 0;
+    m_stdModel->setItem(index++, powerSleep);
+    m_stdModel->setItem(index++, powerHibernate);
+    m_stdModel->setItem(index++, powerShutDown);
+    m_stdModel->setItem(index++, powerRestart);
+    m_stdModel->setItem(index++, powerScreenSaver);
+    m_stdModel->setItem(index++, appLaunchAsUserLister);
+    m_stdModel->setItem(index++, appLaunchAsSystemLister);
+    m_stdModel->setItem(index++, appNew);
+    m_stdModel->setItem(index++, procList);
+    m_stdModel->setItem(index++, winList);
     updateCmdView(m_stdModel);
 
     // Delegate for highlight input matches
@@ -83,48 +86,44 @@ CmdPalette::~CmdPalette()
 
 void CmdPalette::activate()
 {
-    if (!isVisible())
-    {
+    if (!isVisible()) {
+
         show();
         activateWindow();
-        ui->lineEdit->setFocus();
+//        ui->lineEdit->setFocus();
     }
 }
 
-void CmdPalette::reset()
+void CmdPalette::deactivate()
 {
-    // Clear text.
-    ui->lineEdit->clear();
+    // Reset item to null
+    m_currCmdItem = nullptr;
 
     // Update list view to standard model
     updateCmdView(m_stdModel);
+
+    // Hide palette
     hide();
 }
 
 void CmdPalette::cmdActivate(const QModelIndex &index)
 {
-    m_currentItem = (CmdItem *)((QStandardItemModel *)m_proxyModel->sourceModel())->itemFromIndex(m_proxyModel->mapToSource(index));
-    m_currentItem->exec();
-
-    if (m_currentItem->resultModel()->rowCount() > 0) {
-        ui->lineEdit->clear();
-        updateCmdView(m_currentItem->resultModel());
-
-        // Update every second if it's auto-updated
-        if (m_currentItem->isAutoUpdate())
-            m_autoUpdateTimer.start(1000);
+    m_currCmdItem = (CmdItem *)((QStandardItemModel *)m_proxyModel->sourceModel())->itemFromIndex(m_proxyModel->mapToSource(index));
+    m_currCmdItem->exec();
+    if (m_currCmdItem->resultModel()->rowCount() > 0) {
+        updateCmdView(m_currCmdItem->resultModel());
     } else {
-        reset();
+        deactivate();
     }
 }
 
 void CmdPalette::autoUpdate()
 {
-    if (m_currentItem) {
-        m_currentItem->autoUpdate();
+    if (m_currCmdItem) {
+        m_currCmdItem->autoUpdate();
 
         // Update list view
-        ((QWidget *)ui->listView)->update();
+        ui->listView->update();
     }
 }
 
@@ -149,15 +148,12 @@ void CmdPalette::textChanged()
     m_proxyModel->setFilterRegExp(regExp);
 
     // Set highlight and sort by keyword
-
     emit searchChanged(search);
 
     // Update to make highlight effect
-
     ui->listView->update();
 
     // Select first item
-
     ui->listView->selectionModel()->setCurrentIndex(m_proxyModel->index(0, 0), QItemSelectionModel::ClearAndSelect);
 }
 
@@ -178,21 +174,33 @@ void CmdPalette::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void CmdPalette::addItemToSourceModel(CmdItem *item)
-{
-    static int index = 0;
-
-    m_stdModel->setItem(index, item);
-
-    ++index;
-}
-
 void CmdPalette::updateCmdView(QStandardItemModel *model)
 {
-    // Stop timer
-    m_autoUpdateTimer.stop();
+    // Timer control
+
+    static CmdItem *prevCmdItem = nullptr;
+
+    if (m_currCmdItem == nullptr) {
+        if (m_autoUpdateTimer.isActive())
+            m_autoUpdateTimer.stop();
+    } else {
+        if (m_currCmdItem != prevCmdItem) {
+            if (m_currCmdItem->isAutoUpdate()) {
+                if (!m_autoUpdateTimer.isActive())
+                    m_autoUpdateTimer.start(UPDATE_INTERVAL);
+            } else
+                if (m_autoUpdateTimer.isActive())
+                    m_autoUpdateTimer.stop();
+        }
+    }
+
+    prevCmdItem = m_currCmdItem;
+
+    // Clear text.
+    ui->lineEdit->clear();
 
     // Set model
+
     m_proxyModel->setSourceModel(model);
     ui->listView->setModel(m_proxyModel);
 
@@ -200,6 +208,7 @@ void CmdPalette::updateCmdView(QStandardItemModel *model)
     m_proxyModel->setFilterRegExp("");
 
     // Sort
+
     m_proxyModel->sort(-1, Qt::AscendingOrder);
     m_proxyModel->sort(0, Qt::AscendingOrder);
 
