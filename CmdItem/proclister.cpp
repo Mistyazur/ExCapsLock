@@ -7,9 +7,6 @@
 #include <QHash>
 #include <QDebug>
 
-
-
-
 ProcLister::ProcLister(const QString &text, QObject *parent) :
     CmdItem(text, parent)
 {
@@ -70,16 +67,26 @@ void ProcLister::autoUpdate()
 
     // Update process information
 
+    ProcKiller *pProcKiller = NULL;
+    HANDLE hProcess = NULL;
+    DWORD dwPid;
+    DWORD dwExitCode;
+
     for (int i = 0 ; i < m_resultModel->rowCount(); ++i) {
-        ProcKiller *pProcKiller = ((ProcKiller *)m_resultModel->item(i));
+        pProcKiller = ((ProcKiller *)m_resultModel->item(i));
         if (pProcKiller) {
-            int pid = pProcKiller->pid();
-            HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-                                            FALSE, pid);
+            dwPid = pProcKiller->pid();
+            hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwPid);
             if (NULL != hProcess) {
-                pProcKiller->setCpu(getProcessCpu(hProcess, timeDelta));
-                pProcKiller->setMem(getProcessMem(hProcess));
-                processHash.remove(pid);
+                if (::GetExitCodeProcess(hProcess, &dwExitCode)) {
+                    if (dwExitCode == STILL_ACTIVE) {
+                        pProcKiller->setCpu(getProcessCpu(hProcess, timeDelta));
+//                        pProcKiller->setMem(getProcessMem(hProcess));
+                        processHash.remove(dwPid);
+                    } else {
+                        m_resultModel->removeRow(i--);
+                    }
+                }
 
                 ::CloseHandle(hProcess);
             } else {
@@ -92,12 +99,9 @@ void ProcLister::autoUpdate()
 
     QHash<int, QString>::const_iterator it = processHash.constBegin();
     while (it != processHash.constEnd()) {
-        HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-                                        FALSE, it.key());
+        hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, it.key());
         if (NULL != hProcess) {
-            QString nameWithoutExt = it.value();
-            nameWithoutExt = nameWithoutExt.left(nameWithoutExt.lastIndexOf("."));
-            ProcKiller *pProcKiller = new ProcKiller(nameWithoutExt, this);
+            pProcKiller = new ProcKiller(it.value().left(it.value().lastIndexOf(".")), this);
             pProcKiller->setName(it.value());
             pProcKiller->setUser(getProcessUser(hProcess));
             pProcKiller->setPid(it.key());
