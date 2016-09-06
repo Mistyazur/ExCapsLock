@@ -121,13 +121,20 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     static KeySequence keySeq = {};
     static bool bCompositeKey = false;
     PKBDLLHOOKSTRUCT pKey = (PKBDLLHOOKSTRUCT)lParam;
+    int keydown = -1;
+
+    // Key up or down.
+
+    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+        keydown = 1;
+    else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP)
+        keydown = 0;
+    else
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
 
     // Output
-
-    if (wParam == WM_KEYDOWN)
-        qDebug()<<"Key Down: "<<pKey->vkCode<<(bool)(pKey->flags & LLKHF_INJECTED)<<"\tList: "<<keySeq;
-    else
-        qDebug()<<"Key Up:   "<<pKey->vkCode<<(bool)(pKey->flags & LLKHF_INJECTED)<<"\tList: "<<keySeq;
+    qDebug()<<"Key: "<<wParam<<"\t"<<pKey->vkCode<<"\t"
+           <<(bool)(pKey->flags & LLKHF_INJECTED)<<"\tList: "<<keySeq;
 
     // Key event injected was simulated.
 
@@ -142,21 +149,28 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
     // Key event
 
-    if (pKey->vkCode == VK_CAPITAL)
-    {
-        if (wParam == WM_KEYDOWN)
-        {
+    if (pKey->vkCode == VK_ESCAPE) {
+        if (g_cmdPalette->isVisible()) {
+
+            if (!keydown)
+                g_cmdPalette->deactivate();
+
+            // Discard this message because it deactivate command palette
+            return true;
+        }
+    } else  if (pKey->vkCode == VK_CAPITAL) {
+        if (keydown) {
+
             // Set false to check whether composite key
             bCompositeKey = false;
 
             keySeq += VK_CAPITAL;
-        }
-        else if (wParam == WM_KEYUP)
-        {
+        } else {
+
             // Single capslock without other keys
-            if (!bCompositeKey && (keySeq == KeySequence({VK_CAPITAL})))
-            {
-                static QTime tCLHold;
+
+            if (!bCompositeKey && (keySeq == KeySequence({VK_CAPITAL}))) {
+                static QTime tCapsInterval;
                 static HANDLE hThread = NULL;
                 static int serialCapsCount = 0;
 
@@ -166,55 +180,42 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
                     hThread = NULL;
                 }
 
-                if (tCLHold.isValid()) {
-                    if (tCLHold.elapsed() < CAPSLOCK_INTERVAL) {
+                if (tCapsInterval.isValid()) {
+                    if (tCapsInterval.elapsed() < CAPSLOCK_INTERVAL) {
                         ++serialCapsCount;
                     } else {
                         serialCapsCount = 1;
                     }
-                    tCLHold.restart();
+                    tCapsInterval.restart();
                 } else {
                     serialCapsCount = 1;
-                    tCLHold.start();
+                    tCapsInterval.start();
                 }
 
-                if (serialCapsCount > 0) {
-                    hThread = ::CreateThread(NULL, 0,
-                                             CapsLockOperationThread, &serialCapsCount,
-                                             0, NULL);
-                }
+                if (serialCapsCount > 0)
+                    hThread = ::CreateThread(NULL,
+                                             0,
+                                             CapsLockOperationThread,
+                                             &serialCapsCount,
+                                             0,
+                                             NULL);
             }
 
-            // Clear key sequence
+//            keySeq -= pKey->vkCode;
             keySeq.clear();
         }
 
-        // Discard this message because it's Caps Lock.
-
+        // Discard this message because it's Caps Lock
         return true;
-    }
-    else if (pKey->vkCode == VK_ESCAPE)
-    {
-        if (g_cmdPalette->isVisible())
-        {
-            if (wParam == WM_KEYUP)
-                g_cmdPalette->deactivate();
+    } else {
+        if (keySeq.startsWith(VK_CAPITAL)) {
 
-            return true;
-        }
-    }
-    else
-    {
-        if (keySeq.startsWith(VK_CAPITAL))
-        {
             // Composite key
-
             bCompositeKey = true;
 
             // Add key
 
-            if (wParam == WM_KEYDOWN)
-            {
+            if (keydown) {
                 keySeq += pKey->vkCode;
 
                 // Trigger only at key down
@@ -226,23 +227,55 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
             // Trigger at both key down and key up
 
-            bool bKeyDown = (wParam == WM_KEYDOWN) ? true : false;
             if (keySeq == KeySequence({VK_CAPITAL, 'W'}))
-                SimulateKey(VK_UP, bKeyDown);
+                SimulateKey(VK_UP, keydown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'S'}))
-                SimulateKey(VK_DOWN, bKeyDown);
+                SimulateKey(VK_DOWN, keydown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'A'}))
-                SimulateKey(VK_LEFT, bKeyDown);
+                SimulateKey(VK_LEFT, keydown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'D'}))
-                SimulateKey(VK_RIGHT, bKeyDown);
+                SimulateKey(VK_RIGHT, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, 'Q'}))
+                SimulateKey(VK_HOME, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, 'E'}))
+                SimulateKey(VK_END, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'P'}))
+                SimulateKey(VK_NUMPAD9, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'O'}))
+                SimulateKey(VK_NUMPAD8, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'I'}))
+                SimulateKey(VK_NUMPAD7, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_1}))
+                SimulateKey(VK_NUMPAD6, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'L'}))
+                SimulateKey(VK_NUMPAD5, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'K'}))
+                SimulateKey(VK_NUMPAD4, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_2}))
+                SimulateKey(VK_NUMPAD3, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_PERIOD}))
+                SimulateKey(VK_NUMPAD2, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_COMMA}))
+                SimulateKey(VK_NUMPAD1, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_SPACE}))
+                SimulateKey(VK_NUMPAD0, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_RMENU}))
+                SimulateKey(VK_DECIMAL, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_7}))
+                SimulateKey(VK_ADD, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, '9'}))
+                SimulateKey(VK_DIVIDE, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, '0'}))
+                SimulateKey(VK_MULTIPLY, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_MINUS}))
+                SimulateKey(VK_SUBTRACT, keydown);
 
             // Remove key
 
-            if (wParam == WM_KEYUP)
+            if (!keydown)
                 keySeq -= pKey->vkCode;
 
             // Discard this message because it's combined with Caps Lock.
-
             return true;
         }
     }
@@ -261,15 +294,13 @@ KeyboardHook::KeyboardHook(QObject *parent) : QObject(parent)
     }
 
     // Create Command
-
     g_cmdPalette = new CmdPalette();
 
     // Install hook
-
-    HHOOK keyboardHook = ::SetWindowsHookEx(WH_KEYBOARD_LL,
-                                            KbHookProc,
-                                            ::GetModuleHandle(NULL),
-                                            0);
+    ::SetWindowsHookEx(WH_KEYBOARD_LL,
+                       KbHookProc,
+                       ::GetModuleHandle(NULL),
+                       0);
 }
 
 KeyboardHook::~KeyboardHook()

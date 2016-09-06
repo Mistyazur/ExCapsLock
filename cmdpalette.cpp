@@ -47,7 +47,7 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     AppLister *appLaunchAsSystemLister = new AppLister("App: Run as system", true, this);
     AppRegister *appNew = new AppRegister("App: New", this);
     ProcLister *procList = new ProcLister("Process: Kill", this);
-    winLister *winList = new winLister("Window: Switch");
+    winLister *winList = new winLister("Window: Search");
 
     int index = 0;
     m_stdModel->setItem(index++, powerSleep);
