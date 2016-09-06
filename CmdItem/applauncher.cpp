@@ -18,18 +18,15 @@ static BOOL RunAsActiveUser(LPCWSTR lpszProcess)
     LPVOID hActiveUserEnvBlock = NULL;
 
     // Get active user token.
-
     if (!WTSQueryUserToken(WTSGetActiveConsoleSessionId(), &hActiveUserToken))
         goto CLEANUP;
 
     // Copy the access token.
     // The newly created token will be a primary token.
-
     if (!DuplicateTokenEx(hActiveUserToken, MAXIMUM_ALLOWED, &sa, SecurityIdentification, TokenPrimary, &hActiveUserTokenDup))
         goto CLEANUP;
 
     // Create environment block.
-
     if (!CreateEnvironmentBlock(&hActiveUserEnvBlock, hActiveUserTokenDup, false))
         goto CLEANUP;
 
@@ -46,11 +43,9 @@ static BOOL RunAsActiveUser(LPCWSTR lpszProcess)
     // simply pass null and inherit (by default) the security attributes
     // of the existing token. However, in C# structures are value types and therefore
     // cannot be assigned the null value.
-
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 
     // Flags that specify the priority and creation method of the process.
-
     int dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NEW_CONSOLE | CREATE_UNICODE_ENVIRONMENT;
 
     // Create a new process in the current user's logon session.

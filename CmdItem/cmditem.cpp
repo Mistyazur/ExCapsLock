@@ -33,13 +33,10 @@ QStandardItemModel *CmdItem::resultModel()
 
 const QString CmdItem::highlight(QString source, const QString &search)
 {
-    if (!source.isEmpty() && !search.isEmpty())
-    {
+    if (!source.isEmpty() && !search.isEmpty()) {
         QRegExp rx(search, Qt::CaseInsensitive, QRegExp::RegExp);
-        if (rx.indexIn(source) != -1)
-        {
-            for (int i = rx.captureCount(); i >= 1; --i)
-            {
+        if (rx.indexIn(source) != -1) {
+            for (int i = rx.captureCount(); i >= 1; --i) {
                 int pos = rx.pos(i);
                 int len = rx.cap(i).length();
                 if (pos != -1) {

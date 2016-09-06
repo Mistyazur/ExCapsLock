@@ -25,7 +25,6 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     setAttribute(Qt::WA_TranslucentBackground);
 
     // Set window topmost (Qt::WindowStaysOnTopHint does not work when run as administrator)
-
     ::SetWindowPos((HWND)winId(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE|SWP_NOMOVE);
 
     // Set UI
@@ -34,11 +33,9 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     ui->setupUi(this);
 
     // Proxy model for list view
-
     m_proxyModel = new CmdItemSortFilterProxyModel(this);
 
     // Source model for list view
-
     m_stdModel = new QStandardItemModel(this);
 
     Power *powerSleep = new Power("Power: Sleep", 0, this);
@@ -75,7 +72,6 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     connect(this, &CmdPalette::searchChanged, m_delegate, &CmdItemDelegate::searchChanged);
 
    // Timer for updating list view automatically
-
     connect(&m_autoUpdateTimer, &QTimer::timeout, this, &CmdPalette::autoUpdate);
 }
 
