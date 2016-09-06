@@ -6,7 +6,6 @@
 #include <QTime>
 #include <QDebug>
 
-#define CAPSLOCK_INTERVAL   300
 
 CmdPalette *g_cmdPalette = nullptr;
 
@@ -92,30 +91,6 @@ void SwitchWindowWithSameOwner()
         WinControllor::bringToFront(hTargetWnd);
 }
 
-DWORD CapsLockOperationThread(LPVOID lpParam)
-{
-    ::Sleep(CAPSLOCK_INTERVAL);
-
-    int serialCapsCount = *((int *)lpParam);
-
-    switch(serialCapsCount) {
-    case 1:
-        SimulateKey(VK_ESCAPE, 1);
-        SimulateKey(VK_ESCAPE, 0);
-        break;
-    case 2:
-        SimulateKey(VK_RETURN, 1);
-        SimulateKey(VK_RETURN, 0);
-        break;
-    case 3:
-        SimulateKey(VK_CAPITAL, 1);
-        SimulateKey(VK_CAPITAL, 0);
-        break;
-    }
-
-    return 0;
-}
-
 LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
     static KeySequence keySeq = {};
@@ -170,38 +145,10 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
             // Single capslock without other keys
 
             if (!bCompositeKey && (keySeq == KeySequence({VK_CAPITAL}))) {
-                static QTime tCapsInterval;
-                static HANDLE hThread = NULL;
-                static int serialCapsCount = 0;
-
-                if (hThread != NULL) {
-                    ::TerminateThread(hThread, 0);
-                    ::CloseHandle(hThread);
-                    hThread = NULL;
-                }
-
-                if (tCapsInterval.isValid()) {
-                    if (tCapsInterval.elapsed() < CAPSLOCK_INTERVAL) {
-                        ++serialCapsCount;
-                    } else {
-                        serialCapsCount = 1;
-                    }
-                    tCapsInterval.restart();
-                } else {
-                    serialCapsCount = 1;
-                    tCapsInterval.start();
-                }
-
-                if (serialCapsCount > 0)
-                    hThread = ::CreateThread(NULL,
-                                             0,
-                                             CapsLockOperationThread,
-                                             &serialCapsCount,
-                                             0,
-                                             NULL);
+                SimulateKey(VK_ESCAPE, 1);
+                SimulateKey(VK_ESCAPE, 0);
             }
 
-//            keySeq -= pKey->vkCode;
             keySeq.clear();
         }
 
@@ -227,7 +174,9 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
             // Trigger at both key down and key up
 
-            if (keySeq == KeySequence({VK_CAPITAL, 'W'}))
+            if (keySeq == KeySequence({VK_CAPITAL, VK_F12}))
+                SimulateKey(VK_CAPITAL, keydown);
+            else if (keySeq == KeySequence({VK_CAPITAL, 'W'}))
                 SimulateKey(VK_UP, keydown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'S'}))
                 SimulateKey(VK_DOWN, keydown);
