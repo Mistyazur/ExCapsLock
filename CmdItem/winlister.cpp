@@ -52,7 +52,8 @@ bool winLister::exec()
             continue;
 
         if ( !(winInfo.dwStyle & WS_VISIBLE) ||
-             (winInfo.dwExStyle & WS_EX_NOACTIVATE) )
+             (winInfo.dwExStyle & WS_EX_NOACTIVATE) ||
+             (winInfo.dwExStyle & WS_EX_TRANSPARENT))
             continue;
 
         if ( (winInfo.rcWindow.left == desktopInfo.rcWindow.left) &&
@@ -60,6 +61,7 @@ bool winLister::exec()
 //             && (winInfo.rcWindow.bottom == desktopInfo.rcWindow.bottom)
              (winInfo.rcWindow.right == desktopInfo.rcWindow.right) )
             continue;
+
 
         ::GetWindowThreadProcessId(hWnd, &dwPid);
         ::GetWindowText(hWnd, szTitle, 1024);
