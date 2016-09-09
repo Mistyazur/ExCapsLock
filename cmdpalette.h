@@ -5,6 +5,12 @@
 #include "cmditemsortfilterproxymodel.h"
 #include "cmditemdelegate.h"
 #include "CmdItem/cmditem.h"
+#include "cmditem/systemcmd.h"
+#include "cmditem/power.h"
+#include "CmdItem/applister.h"
+#include "CmdItem/appregister.h"
+#include "CmdItem/proclister.h"
+#include "CmdItem/winlister.h"
 #include <QTimer>
 #include <QKeyEvent>
 #include <QStandardItemModel>
@@ -20,7 +26,8 @@ class CmdPalette : public ShadowWidget
 public:
     explicit CmdPalette(ShadowWidget *parent = 0);
     ~CmdPalette();
-    void activate();
+    bool activate();
+    void activateWindowSearch();
     void deactivate();
 signals:
     void searchChanged(QString search);
@@ -38,7 +45,18 @@ private:
     CmdItemSortFilterProxyModel *m_proxyModel;
     CmdItemDelegate *m_delegate;
     CmdItem *m_currCmdItem;
+    Power *m_powerSleep;
+    Power *m_powerHibernate;
+    Power *m_powerShutDown;
+    Power *m_powerRestart;
+    Power *m_powerScreenSaver;
+    AppLister *m_appLaunchAsUserLister;
+    AppLister *m_appLaunchAsSystemLister;
+    AppRegister *m_appNew;
+    ProcLister *m_procList;
+    winLister *m_winList;
 
+    void cmdExecute();
     void updateCmdView(QStandardItemModel *model);
 };
 

@@ -96,14 +96,14 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     static KeySequence keySeq = {};
     static bool bCompositeKey = false;
     PKBDLLHOOKSTRUCT pKey = (PKBDLLHOOKSTRUCT)lParam;
-    int keydown = -1;
+    int bKeyDown = -1;
 
     // Key up or down.
 
     if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
-        keydown = 1;
+        bKeyDown = 1;
     else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP)
-        keydown = 0;
+        bKeyDown = 0;
     else
         return CallNextHookEx(NULL, nCode, wParam, lParam);
 
@@ -127,14 +127,14 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     if (pKey->vkCode == VK_ESCAPE) {
         if (g_cmdPalette->isVisible()) {
 
-            if (!keydown)
+            if (!bKeyDown)
                 g_cmdPalette->deactivate();
 
             // Discard this message because it deactivate command palette
             return true;
         }
     } else  if (pKey->vkCode == VK_CAPITAL) {
-        if (keydown) {
+        if (bKeyDown) {
 
             // Set false to check whether composite key
             bCompositeKey = false;
@@ -162,66 +162,69 @@ LRESULT CALLBACK KbHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
             // Add key
 
-            if (keydown) {
+            if (bKeyDown) {
                 keySeq += pKey->vkCode;
-
-                // Trigger only at key down
-                if (keySeq == KeySequence({VK_CAPITAL, VK_SPACE}))
-                    g_cmdPalette->activate();
-                else if (keySeq == KeySequence({VK_CAPITAL, VK_TAB}))
-                    SwitchWindowWithSameOwner();
             }
 
             // Trigger at both key down and key up
 
-            if (keySeq == KeySequence({VK_CAPITAL, VK_F12}))
-                SimulateKey(VK_CAPITAL, keydown);
+            if (keySeq == KeySequence({VK_CAPITAL, VK_SPACE})) {
+                if (bKeyDown)
+                    g_cmdPalette->activate();
+            } else if (keySeq == KeySequence({VK_CAPITAL, VK_OEM_3})) {
+                if (bKeyDown)
+                    g_cmdPalette->activateWindowSearch();
+            } else if (keySeq == KeySequence({VK_CAPITAL, VK_TAB})) {
+                if (bKeyDown)
+                    SwitchWindowWithSameOwner();
+            } else if (keySeq == KeySequence({VK_CAPITAL, VK_F12}))
+                SimulateKey(VK_CAPITAL, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'W'}))
-                SimulateKey(VK_UP, keydown);
+                SimulateKey(VK_UP, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'S'}))
-                SimulateKey(VK_DOWN, keydown);
+                SimulateKey(VK_DOWN, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'A'}))
-                SimulateKey(VK_LEFT, keydown);
+                SimulateKey(VK_LEFT, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'D'}))
-                SimulateKey(VK_RIGHT, keydown);
+                SimulateKey(VK_RIGHT, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'Q'}))
-                SimulateKey(VK_HOME, keydown);
+                SimulateKey(VK_HOME, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, 'E'}))
-                SimulateKey(VK_END, keydown);
+                SimulateKey(VK_END, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'P'}))
-                SimulateKey(VK_NUMPAD9, keydown);
+                SimulateKey(VK_NUMPAD9, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'O'}))
-                SimulateKey(VK_NUMPAD8, keydown);
+                SimulateKey(VK_NUMPAD8, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'I'}))
-                SimulateKey(VK_NUMPAD7, keydown);
+                SimulateKey(VK_NUMPAD7, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_1}))
-                SimulateKey(VK_NUMPAD6, keydown);
+                SimulateKey(VK_NUMPAD6, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'L'}))
-                SimulateKey(VK_NUMPAD5, keydown);
+                SimulateKey(VK_NUMPAD5, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, 'K'}))
-                SimulateKey(VK_NUMPAD4, keydown);
+                SimulateKey(VK_NUMPAD4, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_2}))
-                SimulateKey(VK_NUMPAD3, keydown);
+                SimulateKey(VK_NUMPAD3, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_PERIOD}))
-                SimulateKey(VK_NUMPAD2, keydown);
+                SimulateKey(VK_NUMPAD2, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_COMMA}))
-                SimulateKey(VK_NUMPAD1, keydown);
+                SimulateKey(VK_NUMPAD1, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_SPACE}))
-                SimulateKey(VK_NUMPAD0, keydown);
+                SimulateKey(VK_NUMPAD0, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_RMENU}))
-                SimulateKey(VK_DECIMAL, keydown);
+                SimulateKey(VK_DECIMAL, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_7}))
-                SimulateKey(VK_ADD, keydown);
+                SimulateKey(VK_ADD, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, '9'}))
-                SimulateKey(VK_DIVIDE, keydown);
+                SimulateKey(VK_DIVIDE, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, '0'}))
-                SimulateKey(VK_MULTIPLY, keydown);
+                SimulateKey(VK_MULTIPLY, bKeyDown);
             else if (keySeq == KeySequence({VK_CAPITAL, VK_LMENU, VK_OEM_MINUS}))
-                SimulateKey(VK_SUBTRACT, keydown);
+                SimulateKey(VK_SUBTRACT, bKeyDown);
 
             // Remove key
 
-            if (!keydown)
+            if (!bKeyDown)
                 keySeq -= pKey->vkCode;
 
             // Discard this message because it's combined with Caps Lock.

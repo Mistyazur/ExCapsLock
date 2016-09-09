@@ -1,11 +1,6 @@
 #include "cmdpalette.h"
 #include "ui_cmd.h"
-#include "cmditem/systemcmd.h"
-#include "cmditem/power.h"
-#include "CmdItem/applister.h"
-#include "CmdItem/appregister.h"
-#include "CmdItem/proclister.h"
-#include "CmdItem/winlister.h"
+
 #include <QDebug>
 #include <QtMath>
 #include <QPainter>
@@ -38,28 +33,28 @@ CmdPalette::CmdPalette(ShadowWidget *parent) :
     // Source model for list view
     m_stdModel = new QStandardItemModel(this);
 
-    Power *powerSleep = new Power("Power: Sleep", 0, this);
-    Power *powerHibernate = new Power("Power: Hibernate", 1, this);
-    Power *powerShutDown = new Power("Power: Shut Down", 2, this);
-    Power *powerRestart = new Power("Power: Restart", 3, this);
-    Power *powerScreenSaver = new Power("Power: Screen Saver", 4, this);
-    AppLister *appLaunchAsUserLister = new AppLister("App: Run", false, this);
-    AppLister *appLaunchAsSystemLister = new AppLister("App: Run as system", true, this);
-    AppRegister *appNew = new AppRegister("App: New", this);
-    ProcLister *procList = new ProcLister("Process: Kill", this);
-    winLister *winList = new winLister("Window: Search");
+    m_powerSleep = new Power("Power: Sleep", 0, this);
+    m_powerHibernate = new Power("Power: Hibernate", 1, this);
+    m_powerShutDown = new Power("Power: Shut Down", 2, this);
+    m_powerRestart = new Power("Power: Restart", 3, this);
+    m_powerScreenSaver = new Power("Power: Screen Saver", 4, this);
+    m_appLaunchAsUserLister = new AppLister("App: Run", false, this);
+    m_appLaunchAsSystemLister = new AppLister("App: Run as system", true, this);
+    m_appNew = new AppRegister("App: New", this);
+    m_procList = new ProcLister("Process: Kill", this);
+    m_winList = new winLister("Window: Search", this);
 
     int index = 0;
-    m_stdModel->setItem(index++, powerSleep);
-    m_stdModel->setItem(index++, powerHibernate);
-    m_stdModel->setItem(index++, powerShutDown);
-    m_stdModel->setItem(index++, powerRestart);
-    m_stdModel->setItem(index++, powerScreenSaver);
-    m_stdModel->setItem(index++, appLaunchAsUserLister);
-    m_stdModel->setItem(index++, appLaunchAsSystemLister);
-    m_stdModel->setItem(index++, appNew);
-    m_stdModel->setItem(index++, procList);
-    m_stdModel->setItem(index++, winList);
+    m_stdModel->setItem(index++, m_powerSleep);
+    m_stdModel->setItem(index++, m_powerHibernate);
+    m_stdModel->setItem(index++, m_powerShutDown);
+    m_stdModel->setItem(index++, m_powerRestart);
+    m_stdModel->setItem(index++, m_powerScreenSaver);
+    m_stdModel->setItem(index++, m_appLaunchAsUserLister);
+    m_stdModel->setItem(index++, m_appLaunchAsSystemLister);
+    m_stdModel->setItem(index++, m_appNew);
+    m_stdModel->setItem(index++, m_procList);
+    m_stdModel->setItem(index++, m_winList);
     updateCmdView(m_stdModel);
 
     // Delegate for highlight input matches
@@ -80,13 +75,22 @@ CmdPalette::~CmdPalette()
     delete ui;
 }
 
-void CmdPalette::activate()
+bool CmdPalette::activate()
 {
-    if (!isVisible()) {
+    if (isVisible())
+        return false;
 
-        show();
-        activateWindow();
-//        ui->lineEdit->setFocus();
+    show();
+    activateWindow();
+
+    return true;
+}
+
+void CmdPalette::activateWindowSearch()
+{
+    if (activate()) {
+        m_currCmdItem = m_winList;
+        cmdExecute();
     }
 }
 
@@ -105,12 +109,7 @@ void CmdPalette::deactivate()
 void CmdPalette::cmdActivate(const QModelIndex &index)
 {
     m_currCmdItem = (CmdItem *)((QStandardItemModel *)m_proxyModel->sourceModel())->itemFromIndex(m_proxyModel->mapToSource(index));
-    m_currCmdItem->exec();
-    if (m_currCmdItem->resultModel()->rowCount() > 0) {
-        updateCmdView(m_currCmdItem->resultModel());
-    } else {
-        deactivate();
-    }
+    cmdExecute();
 }
 
 void CmdPalette::autoUpdate()
@@ -167,6 +166,16 @@ void CmdPalette::keyPressEvent(QKeyEvent *event)
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
     } else if (event->nativeVirtualKey() == VK_UP) {
         QApplication::postEvent(ui->listView, new QKeyEvent(event->type(), event->key(), event->modifiers()));
+    }
+}
+
+void CmdPalette::cmdExecute()
+{
+    m_currCmdItem->exec();
+    if (m_currCmdItem->resultModel()->rowCount() > 0) {
+        updateCmdView(m_currCmdItem->resultModel());
+    } else {
+        deactivate();
     }
 }
 
